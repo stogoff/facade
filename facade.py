@@ -18,13 +18,11 @@ from operator import xor
 
 import sys
 
-pricelist = {}
+price = {}
 
 
 if __name__ == '__main__':
     form_class = uic.loadUiType("main.ui")[0]
-
-
     class MyWindowClass(QW.QMainWindow, form_class):
         def __init__(self, parent=None):
             QW.QMainWindow.__init__(self, parent)
@@ -32,7 +30,9 @@ if __name__ == '__main__':
             self.edit_width.textChanged.connect(self.calc_area)
             self.edit_height.textChanged.connect(self.calc_area)
             self.edit_pillars.textChanged.connect(self.calc_fasteners)
-            self.edit_height.textChanged.connect(self.pre_calc_pillars)
+            self.edit_height.textChanged.connect(self.height_changed)
+
+            self.floors = 0
             try:
                 rate, curr_code = get_euro_rate()
                 self.label_rate.setText("1 %s =" % curr_code)
@@ -43,13 +43,14 @@ if __name__ == '__main__':
                 self.edit_rate.setText("???")
 
             for i,f in ((1,'pillars'), (2, 'headers')):
-                pricelist[i] = parse_f("../прайс_октябрь_2014.xls", i)
+                price[i] = parse_f("../прайс_октябрь_2014.xls", i)
                 ### Combobox:
                 cb = eval("self.comboBox_%d" % i)
                 cb.addItem("Выберите:")
-                for j in range(len(pricelist[i])):
-                    cb.addItem(pricelist[i][j][0])
+                for name in sorted(price[i]):
+                    cb.addItem(name)
                 cb.activated[str].connect(eval("self.calc_%s" % f))
+                cb.setEnabled(False)
                 ### filling the table:
                 #tab = eval("self.tableWidget%d" % i)
                 #header = tab.horizontalHeader()
@@ -124,34 +125,47 @@ if __name__ == '__main__':
             return res
 
 
-        def pre_calc_pillars(self):
+        def height_changed(self):
             h = self.get_number_field (self.edit_height)
-            tab = self.tableWidget1
-            for i in range(tab.rowCount()):
-                #print(i)
-                #посчитаем длину профиля:
-                st_len = self.get_number_cell(tab.item(i, 2))
-                p_length = calc_profile_length(h, st_len)
-                tab.setItem(i, 3, QW.QTableWidgetItem("%5.2f"%p_length))
-                item = tab.item(i,3)
-                item.setBackground(QG.QColor(QC.Qt.lightGray))
-                item.setFlags(xor(tab.item(i, 3).flags(),
-                                            QC.Qt.ItemIsEditable))
+            if h:
+                self.comboBox_1.setEnabled(True)
+            else:
+                self.comboBox_1.setEnabled(False)
+            if h > 3:
+                self.floors, ok = MyDialog1Class.getRes()
+            if not self.floors: #нет перекрытий
+                pass
+
+            #tab = self.tableWidget1
+            #for i in range(tab.rowCount()):
+                ##print(i)
+                ##посчитаем длину профиля:
+                #st_len = self.get_number_cell(tab.item(i, 2))
+                #p_length = calc_profile_length(h, st_len)
+                #tab.setItem(i, 3, QW.QTableWidgetItem("%5.2f"%p_length))
+                #item = tab.item(i,3)
+                #item.setBackground(QG.QColor(QC.Qt.lightGray))
+                #item.setFlags(xor(tab.item(i, 3).flags(),
+                                            #QC.Qt.ItemIsEditable))
 
 
 
         def calc_pillars(self, item):
             print(item)
-            return
             #s = 0 # сумма
-            #p = 0 # суммарное количество стоек разных типов
-            #pil = self.edit_pillars
-            #np = self.get_number_field(pil) # общее число стоек
-            ##print ("np=%d"%np)
-            ##if not np:
-            ##    QW.QMessageBox.question(self, 'Message',
-            ##            "Укажите общее число стоек", QW.QMessageBox.Ok)
-            ##    return
+            if item not in price[1].keys():
+                return
+            np = self.get_number_field(self.edit_pillars) # число стоек
+            print ("np=%d"%np)
+            if not np:
+                QW.QMessageBox.question(self, 'Message',
+                        "Укажите число стоек", QW.QMessageBox.Ok)
+                self.comboBox_1.setCurrentIndex(0)
+                return
+            h = self.get_number_field (self.edit_height)
+            if not self.floors:  #нет перекрытий
+                st_len = price[1][item][1]
+
             #tab = self.tableWidget1
             #for i in range(tab.rowCount()):
                 #p_length = self.get_number_cell(tab.item(i, 3))
@@ -183,6 +197,20 @@ if __name__ == '__main__':
                 num_headers = int(self.tableWidget2.item(i, 2).text())
                 s +=  num_headers * 6 * price
             self.label_sum2.setText("%5.2f" % s)
+
+    dialog1_class = uic.loadUiType("dialog1.ui")[0]
+    class MyDialog1Class(QW.QDialog, dialog1_class):
+        def __init__(self, parent=None):
+            QW.QDialog.__init__(self, parent)
+            self.setupUi(self)
+            self.ww = self.spinBox.value()
+
+        @staticmethod
+        def getRes(parent = None):
+            dialog = MyDialog1Class(parent)
+            result = dialog.exec_()
+            res = dialog.spinBox.value()
+            return (res, result == QW.QDialog.Accepted)
 
 
     app = QW.QApplication(sys.argv)

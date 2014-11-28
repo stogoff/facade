@@ -15,7 +15,7 @@ def col(col_letter):
 
 def parse_f(fn, t=1): # t - назначение профиля
     profile_ids = {
-                1: 
+                1:
                     ['ТП-50310', 'ЭК-5002', 'ТП-50311', 'ЭК-5006', 'ТП-50312',
                     'ТП-50313', 'ТП-50314', 'ТП-50314-01', 'ТП-50314-02'],
                 2:
@@ -23,7 +23,7 @@ def parse_f(fn, t=1): # t - назначение профиля
                     'ТП-50323', 'ТП-50324', 'ТП-50325', 'ТП-50326', 'ТП-50327',
                     'ТП-50327-01']
                     }
-    res = []
+    res = {}
     book = xlrd.open_workbook(fn)
     #print ("The number of worksheets is", book.nsheets)
     #print ("Worksheet name(s):", book.sheet_names())
@@ -34,10 +34,9 @@ def parse_f(fn, t=1): # t - назначение профиля
         if name in profile_ids[t]:
             price_rub = sh.cell_value(rx, col(COL_PRICE_RUB)) * K
             length = sh.cell_value(rx, col(COL_LEN))
-            #density = sh.cell_value(rx, COL_DENSITY)
-            
-            res.append( [name, price_rub, length, length]) #, density])
+            density = sh.cell_value(rx, col(COL_DENSITY))
+            res[name]=[price_rub, length, density]
     return (res)
-    
+
 if __name__ == '__main__':
-    print (parse_f("прайс_октябрь_2014.xls", 1))
+    print (parse_f("../прайс_октябрь_2014.xls", 1))
