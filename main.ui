@@ -27,7 +27,7 @@
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <property name="documentMode">
      <bool>false</bool>
@@ -39,61 +39,6 @@
      <attribute name="title">
       <string>Стойка</string>
      </attribute>
-     <widget class="QTableWidget" name="tableWidget1">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>691</width>
-        <height>291</height>
-       </rect>
-      </property>
-      <property name="rowCount">
-       <number>0</number>
-      </property>
-      <property name="columnCount">
-       <number>5</number>
-      </property>
-      <column>
-       <property name="text">
-        <string>Артикул</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>225</red>
-         <green>225</green>
-         <blue>225</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Цена за м</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>226</red>
-         <green>226</green>
-         <blue>226</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Ст. длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Количество</string>
-       </property>
-      </column>
-     </widget>
      <widget class="QLabel" name="label_sum1">
       <property name="geometry">
        <rect>
@@ -107,66 +52,21 @@
        <string>сумма</string>
       </property>
      </widget>
+     <widget class="QComboBox" name="comboBox_1">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>161</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
       <string>Ригель</string>
      </attribute>
-     <widget class="QTableWidget" name="tableWidget2">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>691</width>
-        <height>291</height>
-       </rect>
-      </property>
-      <property name="rowCount">
-       <number>0</number>
-      </property>
-      <property name="columnCount">
-       <number>5</number>
-      </property>
-      <column>
-       <property name="text">
-        <string>Артикул</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>225</red>
-         <green>225</green>
-         <blue>225</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Цена за м</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>226</red>
-         <green>226</green>
-         <blue>226</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Ст. длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Количество</string>
-       </property>
-      </column>
-     </widget>
      <widget class="QLabel" name="label_sum2">
       <property name="geometry">
        <rect>
@@ -178,6 +78,16 @@
       </property>
       <property name="text">
        <string>сумма</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="comboBox_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>161</width>
+        <height>27</height>
+       </rect>
       </property>
      </widget>
     </widget>

@@ -2,7 +2,7 @@
 # Программа расчета себестоимости фасадных конструкций
 # Date: 26/11/2014
 # Author: rost@stogoff.ru
-# 
+#
 # Requirements:
 # Python3   https://www.python.org/downloads/
 # PyQt5     http://www.riverbankcomputing.com/software/pyqt/download5
@@ -17,6 +17,9 @@ from operator import xor
 
 
 import sys
+
+pricelist = {}
+
 
 if __name__ == '__main__':
     form_class = uic.loadUiType("main.ui")[0]
@@ -39,33 +42,35 @@ if __name__ == '__main__':
                 self.label_rate.setText("1 EUR =")
                 self.edit_rate.setText("???")
 
-
             for i,f in ((1,'pillars'), (2, 'headers')):
-                data = parse_f("../прайс_октябрь_2014.xls", i)
-                
-                
-                # filling the table:
-                tab = eval("self.tableWidget%d" % i)
-
-                header = tab.horizontalHeader()
-                header.setStretchLastSection(True)
-                #header.setResizeMode(QHeaderView.Stretch)
-                for i in range(len(data)):
-                    tab.insertRow(i)
-                    for j in range(len(data[i])):
-                        value = data[i][j]
-                        if j == 1: #если это цена, пересчитываем в евро + ндс
-                            value = "%5.2f" % (1.18 * value / rate)
-                        elif j > 1:
-                            value = "%5.2f" % value
-                        tab.setItem(i, j, QW.QTableWidgetItem(value))
-                        if j<5:
-                            item = tab.item(i, j)
-                            item.setBackground(QG.QColor(QC.Qt.lightGray))
-                            item.setFlags(xor(tab.item(i, j).flags(),
-                                            QC.Qt.ItemIsEditable))
-                    tab.setItem(i, j+1, QW.QTableWidgetItem("0"))
-                tab.itemChanged.connect(eval("self.calc_%s" % f))
+                pricelist[i] = parse_f("../прайс_октябрь_2014.xls", i)
+                ### Combobox:
+                cb = eval("self.comboBox_%d" % i)
+                cb.addItem("Выберите:")
+                for j in range(len(pricelist[i])):
+                    cb.addItem(pricelist[i][j][0])
+                cb.activated[str].connect(eval("self.calc_%s" % f))
+                ### filling the table:
+                #tab = eval("self.tableWidget%d" % i)
+                #header = tab.horizontalHeader()
+                #header.setStretchLastSection(True)
+                ##header.setResizeMode(QHeaderView.Stretch)
+                #for i in range(len(data)):
+                    #tab.insertRow(i)
+                    #for j in range(len(data[i])):
+                        #value = data[i][j]
+                        #if j == 1: #если это цена, пересчитываем в евро + ндс
+                            #value = "%5.2f" % (1.18 * value / rate)
+                        #elif j > 1:
+                            #value = "%5.2f" % value
+                        #tab.setItem(i, j, QW.QTableWidgetItem(value))
+                        #if j<5:
+                            #item = tab.item(i, j)
+                            #item.setBackground(QG.QColor(QC.Qt.lightGray))
+                            #item.setFlags(xor(tab.item(i, j).flags(),
+                                            #QC.Qt.ItemIsEditable))
+                    #tab.setItem(i, j+1, QW.QTableWidgetItem("0"))
+                #tab.itemChanged.connect(eval("self.calc_%s" % f))
 
 
         def calc_area(self):
@@ -135,40 +140,41 @@ if __name__ == '__main__':
 
 
 
-        def calc_pillars(self):
+        def calc_pillars(self, item):
+            print(item)
+            return
+            #s = 0 # сумма
+            #p = 0 # суммарное количество стоек разных типов
+            #pil = self.edit_pillars
+            #np = self.get_number_field(pil) # общее число стоек
+            ##print ("np=%d"%np)
+            ##if not np:
+            ##    QW.QMessageBox.question(self, 'Message',
+            ##            "Укажите общее число стоек", QW.QMessageBox.Ok)
+            ##    return
+            #tab = self.tableWidget1
+            #for i in range(tab.rowCount()):
+                #p_length = self.get_number_cell(tab.item(i, 3))
+                #num_pillars = self.get_number_cell(tab.item(i, 4))
+                #p += num_pillars
+                #price = self.get_number_cell(tab.item(i, 1))
+                #s +=  num_pillars * p_length * price
 
-            s = 0 # сумма
-            p = 0 # суммарное количество стоек разных типов
-            pil = self.edit_pillars
-            np = self.get_number_field(pil) # общее число стоек
-            #print ("np=%d"%np)
-            #if not np:
-            #    QW.QMessageBox.question(self, 'Message',
-            #            "Укажите общее число стоек", QW.QMessageBox.Ok)
-            #    return
-            tab = self.tableWidget1
-            for i in range(tab.rowCount()):
-                p_length = self.get_number_cell(tab.item(i, 3))
-                num_pillars = self.get_number_cell(tab.item(i, 4))
-                p += num_pillars
-                price = self.get_number_cell(tab.item(i, 1))
-                s +=  num_pillars * p_length * price
-
-            #print ("p=%d"%p)
-            if p > np:
-                pil.setStyleSheet("QLineEdit{background: red;}")
-                pil.setToolTip("Число стоек в таблице превышает общее")
-                color = "red"
-            elif p < np:
-                pil.setStyleSheet("QLineEdit{background: yellow;}")
-                pil.setToolTip("Число стоек в таблице меньше общего")
-                color= "orange"
-            else:
-                pil.setStyleSheet("QLineEdit{background: white;}")
-                pil.setToolTip("")
-                color = "green"
-            self.label_sum1.setText("<b><font color='%s'>%5.2f</font></b>" %
-                                    (color,s))
+            ##print ("p=%d"%p)
+            #if p > np:
+                #pil.setStyleSheet("QLineEdit{background: red;}")
+                #pil.setToolTip("Число стоек в таблице превышает общее")
+                #color = "red"
+            #elif p < np:
+                #pil.setStyleSheet("QLineEdit{background: yellow;}")
+                #pil.setToolTip("Число стоек в таблице меньше общего")
+                #color= "orange"
+            #else:
+                #pil.setStyleSheet("QLineEdit{background: white;}")
+                #pil.setToolTip("")
+                #color = "green"
+            #self.label_sum1.setText("<b><font color='%s'>%5.2f</font></b>" %
+                                    #(color,s))
 
         def calc_headers(self):
             s = 0
