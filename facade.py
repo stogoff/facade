@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
 
             for i,f in ((1,'pillars'), (2, 'headers')):
-                data = parse_f("прайс_октябрь_2014.xls", i)
+                data = parse_f("../прайс_октябрь_2014.xls", i)
                 
                 
                 # filling the table:
