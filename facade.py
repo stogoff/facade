@@ -17,6 +17,7 @@ from operator import xor
 
 
 import sys
+import BinPacking 
 
 price = {}
 
@@ -52,27 +53,6 @@ if __name__ == '__main__':
                     cb.addItem(name)
                 cb.activated[str].connect(eval("self.calc_%s" % f))
                 cb.setEnabled(False)
-                ### filling the table:
-                #tab = eval("self.tableWidget%d" % i)
-                #header = tab.horizontalHeader()
-                #header.setStretchLastSection(True)
-                ##header.setResizeMode(QHeaderView.Stretch)
-                #for i in range(len(data)):
-                    #tab.insertRow(i)
-                    #for j in range(len(data[i])):
-                        #value = data[i][j]
-                        #if j == 1: #если это цена, пересчитываем в евро + ндс
-                            #value = "%5.2f" % (1.18 * value / rate)
-                        #elif j > 1:
-                            #value = "%5.2f" % value
-                        #tab.setItem(i, j, QW.QTableWidgetItem(value))
-                        #if j<5:
-                            #item = tab.item(i, j)
-                            #item.setBackground(QG.QColor(QC.Qt.lightGray))
-                            #item.setFlags(xor(tab.item(i, j).flags(),
-                                            #QC.Qt.ItemIsEditable))
-                    #tab.setItem(i, j+1, QW.QTableWidgetItem("0"))
-                #tab.itemChanged.connect(eval("self.calc_%s" % f))
 
 
         def calc_area(self):
@@ -107,9 +87,7 @@ if __name__ == '__main__':
                 res = float(field.text())
                 field.setStyleSheet("QLineEdit{background: white;}")
             except:
-                #print("Unexpected error:", sys.exc_info()[0])
                 res = 0
-                #field.setText("0")
                 field.setStyleSheet("QLineEdit{background: red;}")
                 field.setToolTip("Введите число!")
                 #QW.QMessageBox.question(self, 'Message',
@@ -127,12 +105,12 @@ if __name__ == '__main__':
 
 
         def height_changed(self):
-            h = self.get_number_field (self.edit_height)
-            if h:
+            self.h = self.get_number_field (self.edit_height)
+            if self.h:
                 self.comboBox_1.setEnabled(True)
             else:
                 self.comboBox_1.setEnabled(False)
-            if h > 3:
+            if self.h > 3:
                 self.fl, ok = MyDialog1Class.getRes(msg="Число перекрытий:")
             if not self.fl: #нет перекрытий
                 pass
@@ -141,23 +119,9 @@ if __name__ == '__main__':
                     self.fh[f], ok =  \
                         MyDialog2Class.getRes(msg= \
                         "Высота %d-го перекрытия"% (f+1))
-                    
                     if self.fh[f]>1000:
                         self.fh[f] /=1000
-                
                 print(self.fl, self.fh)
-            #tab = self.tableWidget1
-            #for i in range(tab.rowCount()):
-                ##print(i)
-                ##посчитаем длину профиля:
-                #st_len = self.get_number_cell(tab.item(i, 2))
-                #p_length = calc_profile_length(h, st_len)
-                #tab.setItem(i, 3, QW.QTableWidgetItem("%5.2f"%p_length))
-                #item = tab.item(i,3)
-                #item.setBackground(QG.QColor(QC.Qt.lightGray))
-                #item.setFlags(xor(tab.item(i, 3).flags(),
-                                            #QC.Qt.ItemIsEditable))
-
 
 
         def calc_pillars(self, item):
@@ -172,33 +136,33 @@ if __name__ == '__main__':
                         "Укажите число стоек", QW.QMessageBox.Ok)
                 self.comboBox_1.setCurrentIndex(0)
                 return
-            h = self.get_number_field (self.edit_height)
-            if not self.floors:  #нет перекрытий
+            if not self.fl:  #нет перекрытий
                 st_len = price[1][item][1]
+                price_m = price[1][item][0]
+                self.label_20.setText("%.2f"%price_m)
+                if self.h > st_len:
+                    num = int(self.h // st_len) # число целых профилей
+                    print(num)
+                    sum1 = np * num * price_m # стоимость целых профилей
+                    self.label_21.setText("%.2f"%sum1)
+                    tail = self.h % st_len # длина остатка
+                    print ("tail=%d"%tail)
+                    d = st_len // tail # сколько остатков получится из 1 проф
+                    sum2 = np / d * price_m # стоимость остатков
+                    self.label_22.setText("%.2f"%sum2)
+                    
+                    
+                    #aList =  np * [tail]
+                    #bins = BinPacking.pack(aList, st_len)
+                    #print ('Solution using', len(bins), 'bins:')
+                    #for bin in bins:
+                    #    print (bin)
+                        
 
-            #tab = self.tableWidget1
-            #for i in range(tab.rowCount()):
-                #p_length = self.get_number_cell(tab.item(i, 3))
-                #num_pillars = self.get_number_cell(tab.item(i, 4))
-                #p += num_pillars
-                #price = self.get_number_cell(tab.item(i, 1))
-                #s +=  num_pillars * p_length * price
 
-            ##print ("p=%d"%p)
-            #if p > np:
-                #pil.setStyleSheet("QLineEdit{background: red;}")
-                #pil.setToolTip("Число стоек в таблице превышает общее")
-                #color = "red"
-            #elif p < np:
-                #pil.setStyleSheet("QLineEdit{background: yellow;}")
-                #pil.setToolTip("Число стоек в таблице меньше общего")
-                #color= "orange"
-            #else:
-                #pil.setStyleSheet("QLineEdit{background: white;}")
-                #pil.setToolTip("")
-                #color = "green"
-            #self.label_sum1.setText("<b><font color='%s'>%5.2f</font></b>" %
-                                    #(color,s))
+
+
+
 
         def calc_headers(self):
             s = 0
@@ -207,6 +171,7 @@ if __name__ == '__main__':
                 num_headers = int(self.tableWidget2.item(i, 2).text())
                 s +=  num_headers * 6 * price
             self.label_sum2.setText("%5.2f" % s)
+
 
     dialog1_class = uic.loadUiType("dialog1.ui")[0]
     class MyDialog1Class(QW.QDialog, dialog1_class):
@@ -224,6 +189,7 @@ if __name__ == '__main__':
             result = dialog.exec_()
             res = dialog.spinBox.value()
             return (res, result == QW.QDialog.Accepted)
+
 
     dialog2_class = uic.loadUiType("dialog2.ui")[0]
     class MyDialog2Class(QW.QDialog, dialog2_class):
