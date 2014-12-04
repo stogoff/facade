@@ -32,7 +32,8 @@ if __name__ == '__main__':
             self.edit_pillars.textChanged.connect(self.calc_fasteners)
             self.edit_height.textChanged.connect(self.height_changed)
 
-            self.floors = 0
+            self.fl = 0
+            self.fh = {}
             try:
                 rate, curr_code = get_euro_rate()
                 self.label_rate.setText("1 %s =" % curr_code)
@@ -43,7 +44,7 @@ if __name__ == '__main__':
                 self.edit_rate.setText("???")
 
             for i,f in ((1,'pillars'), (2, 'headers')):
-                price[i] = parse_f("../прайс_октябрь_2014.xls", i)
+                price[i] = parse_f("../прайс_декабрь2014.xlsx", i)
                 ### Combobox:
                 cb = eval("self.comboBox_%d" % i)
                 cb.addItem("Выберите:")
@@ -132,10 +133,19 @@ if __name__ == '__main__':
             else:
                 self.comboBox_1.setEnabled(False)
             if h > 3:
-                self.floors, ok = MyDialog1Class.getRes()
-            if not self.floors: #нет перекрытий
+                self.fl, ok = MyDialog1Class.getRes(msg="Число перекрытий:")
+            if not self.fl: #нет перекрытий
                 pass
-
+            else:
+                for f in range(self.fl):
+                    self.fh[f], ok =  \
+                        MyDialog2Class.getRes(msg= \
+                        "Высота %d-го перекрытия"% (f+1))
+                    
+                    if self.fh[f]>1000:
+                        self.fh[f] /=1000
+                
+                print(self.fl, self.fh)
             #tab = self.tableWidget1
             #for i in range(tab.rowCount()):
                 ##print(i)
@@ -203,14 +213,33 @@ if __name__ == '__main__':
         def __init__(self, parent=None):
             QW.QDialog.__init__(self, parent)
             self.setupUi(self)
-            self.ww = self.spinBox.value()
+            #self.ww = self.spinBox.value()
 
         @staticmethod
-        def getRes(parent = None):
+        def getRes(parent = None, msg = ""):
+            print (msg)
             dialog = MyDialog1Class(parent)
+            if msg:
+                dialog.label.setText(msg)
             result = dialog.exec_()
             res = dialog.spinBox.value()
             return (res, result == QW.QDialog.Accepted)
+
+    dialog2_class = uic.loadUiType("dialog2.ui")[0]
+    class MyDialog2Class(QW.QDialog, dialog2_class):
+        def __init__(self, parent=None):
+            QW.QDialog.__init__(self, parent)
+            self.setupUi(self)
+
+        @staticmethod
+        def getRes(parent = None, msg = ""):
+            print (msg)
+            dialog = MyDialog2Class(parent)
+            if msg:
+                dialog.label.setText(msg)
+            result = dialog.exec_()
+            res = dialog.lineEdit.text()
+            return (float(res), result == QW.QDialog.Accepted)
 
 
     app = QW.QApplication(sys.argv)

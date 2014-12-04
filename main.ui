@@ -95,61 +95,6 @@
      <attribute name="title">
       <string>Усилитель</string>
      </attribute>
-     <widget class="QTableWidget" name="tableWidget3">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>691</width>
-        <height>291</height>
-       </rect>
-      </property>
-      <property name="rowCount">
-       <number>0</number>
-      </property>
-      <property name="columnCount">
-       <number>5</number>
-      </property>
-      <column>
-       <property name="text">
-        <string>Артикул</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>225</red>
-         <green>225</green>
-         <blue>225</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Цена за м</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>226</red>
-         <green>226</green>
-         <blue>226</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Ст. длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Количество</string>
-       </property>
-      </column>
-     </widget>
      <widget class="QLabel" name="label_sum3">
       <property name="geometry">
        <rect>
@@ -168,61 +113,6 @@
      <attribute name="title">
       <string>Сухарь</string>
      </attribute>
-     <widget class="QTableWidget" name="tableWidget4">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>691</width>
-        <height>291</height>
-       </rect>
-      </property>
-      <property name="rowCount">
-       <number>0</number>
-      </property>
-      <property name="columnCount">
-       <number>5</number>
-      </property>
-      <column>
-       <property name="text">
-        <string>Артикул</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>225</red>
-         <green>225</green>
-         <blue>225</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Цена за м</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>226</red>
-         <green>226</green>
-         <blue>226</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Ст. длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Количество</string>
-       </property>
-      </column>
-     </widget>
      <widget class="QLabel" name="label_sum4">
       <property name="geometry">
        <rect>
@@ -241,61 +131,6 @@
      <attribute name="title">
       <string>Крышка</string>
      </attribute>
-     <widget class="QTableWidget" name="tableWidget5">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>691</width>
-        <height>291</height>
-       </rect>
-      </property>
-      <property name="rowCount">
-       <number>0</number>
-      </property>
-      <property name="columnCount">
-       <number>5</number>
-      </property>
-      <column>
-       <property name="text">
-        <string>Артикул</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>225</red>
-         <green>225</green>
-         <blue>225</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Цена за м</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>226</red>
-         <green>226</green>
-         <blue>226</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Ст. длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Количество</string>
-       </property>
-      </column>
-     </widget>
      <widget class="QLabel" name="label_sum5">
       <property name="geometry">
        <rect>
@@ -314,61 +149,6 @@
      <attribute name="title">
       <string>Прижим</string>
      </attribute>
-     <widget class="QTableWidget" name="tableWidget6">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>691</width>
-        <height>291</height>
-       </rect>
-      </property>
-      <property name="rowCount">
-       <number>0</number>
-      </property>
-      <property name="columnCount">
-       <number>5</number>
-      </property>
-      <column>
-       <property name="text">
-        <string>Артикул</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>225</red>
-         <green>225</green>
-         <blue>225</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Цена за м</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>226</red>
-         <green>226</green>
-         <blue>226</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Ст. длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Количество</string>
-       </property>
-      </column>
-     </widget>
      <widget class="QLabel" name="label_sum6">
       <property name="geometry">
        <rect>
@@ -387,61 +167,6 @@
      <attribute name="title">
       <string>Адаптер</string>
      </attribute>
-     <widget class="QTableWidget" name="tableWidget7">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>691</width>
-        <height>291</height>
-       </rect>
-      </property>
-      <property name="rowCount">
-       <number>0</number>
-      </property>
-      <property name="columnCount">
-       <number>5</number>
-      </property>
-      <column>
-       <property name="text">
-        <string>Артикул</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>225</red>
-         <green>225</green>
-         <blue>225</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Цена за м</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>226</red>
-         <green>226</green>
-         <blue>226</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Ст. длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Количество</string>
-       </property>
-      </column>
-     </widget>
      <widget class="QLabel" name="label_sum7">
       <property name="geometry">
        <rect>
@@ -460,61 +185,6 @@
      <attribute name="title">
       <string>Резина</string>
      </attribute>
-     <widget class="QTableWidget" name="tableWidget8">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>691</width>
-        <height>291</height>
-       </rect>
-      </property>
-      <property name="rowCount">
-       <number>0</number>
-      </property>
-      <property name="columnCount">
-       <number>5</number>
-      </property>
-      <column>
-       <property name="text">
-        <string>Артикул</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>225</red>
-         <green>225</green>
-         <blue>225</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Цена за м</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>226</red>
-         <green>226</green>
-         <blue>226</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Ст. длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Количество</string>
-       </property>
-      </column>
-     </widget>
      <widget class="QLabel" name="label_sum8">
       <property name="geometry">
        <rect>
@@ -533,61 +203,6 @@
      <attribute name="title">
       <string>ПВХ</string>
      </attribute>
-     <widget class="QTableWidget" name="tableWidget9">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>691</width>
-        <height>291</height>
-       </rect>
-      </property>
-      <property name="rowCount">
-       <number>0</number>
-      </property>
-      <property name="columnCount">
-       <number>5</number>
-      </property>
-      <column>
-       <property name="text">
-        <string>Артикул</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>225</red>
-         <green>225</green>
-         <blue>225</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Цена за м</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>226</red>
-         <green>226</green>
-         <blue>226</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Ст. длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Количество</string>
-       </property>
-      </column>
-     </widget>
      <widget class="QLabel" name="label_sum9">
       <property name="geometry">
        <rect>
@@ -606,61 +221,6 @@
      <attribute name="title">
       <string>Подкладка</string>
      </attribute>
-     <widget class="QTableWidget" name="tableWidget10">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>691</width>
-        <height>291</height>
-       </rect>
-      </property>
-      <property name="rowCount">
-       <number>0</number>
-      </property>
-      <property name="columnCount">
-       <number>5</number>
-      </property>
-      <column>
-       <property name="text">
-        <string>Артикул</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>225</red>
-         <green>225</green>
-         <blue>225</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Цена за м</string>
-       </property>
-       <property name="background">
-        <color>
-         <red>226</red>
-         <green>226</green>
-         <blue>226</blue>
-        </color>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Ст. длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Длина, м</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Количество</string>
-       </property>
-      </column>
-     </widget>
      <widget class="QLabel" name="label_sum10">
       <property name="geometry">
        <rect>

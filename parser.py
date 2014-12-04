@@ -1,12 +1,12 @@
 import xlrd
 
-WS_NUM = 3              # порядковый номер листа в книге xls
+WS_NUM = 2             # порядковый номер листа в книге xls
 COL_NAME = 'B'          # столбец "наименование"
-COL_PRICE_RUB = 'L'     # столбец "цена"
-COL_LEN = 'E'           # столбец "длина"
-COL_DENSITY = 'F'       # столбец "уд.вес"
+COL_PRICE = 'M'#'L'     # столбец "цена"
+COL_LEN = 'F'#'E'           # столбец "длина"
+COL_DENSITY = 'G'#'F'       # столбец "уд.вес"
 
-K = 1.2                 # увеличение цены поставщиком со времени выхода прайса
+K = 1                # увеличение цены поставщиком со времени выхода прайса
 
 
 def col(col_letter):
@@ -15,28 +15,75 @@ def col(col_letter):
 
 def parse_f(fn, t=1): # t - назначение профиля
     profile_ids = {
-                1:
+                1: #стойка
                     ['ТП-50310', 'ЭК-5002', 'ТП-50311', 'ЭК-5006', 'ТП-50312',
                     'ТП-50313', 'ТП-50314', 'ТП-50314-01', 'ТП-50314-02'],
-                2:
+                2: #ригель
                     ['ТП-50320', 'ЭК-5003', 'ТП-50321', 'ЭК-5001', 'ТП-50322',
                     'ТП-50323', 'ТП-50324', 'ТП-50325', 'ТП-50326', 'ТП-50327',
-                    'ТП-50327-01']
+                    'ТП-50327-01'],
+                3: #усилитель
+                    ['ТП-5013Н', 'ТП-5013-01Н', 'ТП-5013-02Н', 'ТП-5013-03Н',
+                    'ТП-5013-04Н', 'ТП-5013-05Н', 'ТП-5013-06Н'],
+                4: #сухарь
+                    ['ТП-5004', 'ТП-5011', 'ТП-50303', 'ТП-50304', 'ТП-5021М'],
+                5: #крышка
+                    ['ТП-5014М', 'ТП-5015М', 'ТП-5046', 'ТП-50382', 'ТП-50374', 
+                    'ТП-50375', 'ТП-50309' ],
+                6: #прижим
+                    ['ТП-5005М', 'ТП-50358', 'ТП-5045', 'ТП-50308','ТП-50305'],
+                7: #адаптер
+                    ['ТП-50353', 'ТП-50355', 'ТП-50356', 'ТП-50359М' ],
+                8: #резина
+                    ['ТПУ-001ММ', 'ТПУ-6004', 'ТПУ-6001', 'ТПУ-6002', 
+                    'ТПУ-6002Т', 'ТПУ-6005', 'ТПУ-007ММ', 'ТПУ-301',
+                    'ТПУ-308', 'ТПУ-309', ],
+                9: #ПВХ
+                    ['ТПУ-032-14', 'ТПУ-032-18', 'ТПУ-032-26', 'ТПУ-032-33',
+                    'ТПУ-032-41', 'ТПУ-035', 'ТПУ-60502', 'ТПУ-010-03', 
+                    'ТПУ-010-04',  ],
+                10: #подкладка
+                    ['ТПУ-011', 'ТП-5094', 'ТП-5095', 'ТП-5096', 'ТП-5097', 
+                    'ТП-5098', 'ТП-5099'],
+                    
                     }
+    cnt=0
     res = {}
     book = xlrd.open_workbook(fn)
     #print ("The number of worksheets is", book.nsheets)
     #print ("Worksheet name(s):", book.sheet_names())
-    sh = book.sheet_by_index(WS_NUM-1) # так как с 0
-    #print (sh.name, sh.nrows, sh.ncols)
-    for rx in range(sh.nrows):
-        name = sh.cell_value(rx, col(COL_NAME))
-        if name in profile_ids[t]:
-            price_rub = sh.cell_value(rx, col(COL_PRICE_RUB)) * K
-            length = sh.cell_value(rx, col(COL_LEN))
-            density = sh.cell_value(rx, col(COL_DENSITY))
-            res[name]=[price_rub, length, density]
+    if t<8 or t>9: # металл
+        sh = book.sheet_by_index(WS_NUM-1) # так как с 0
+        #print (sh.name, sh.nrows, sh.ncols)
+        for rx in range(sh.nrows):
+            name = sh.cell_value(rx, col(COL_NAME))
+            if name in profile_ids[t]:
+                price = sh.cell_value(rx, col(COL_PRICE)) * K
+                length = sh.cell_value(rx, col(COL_LEN))
+                density = sh.cell_value(rx, col(COL_DENSITY))
+                res[name]=[price, length, density]
+    else: #резина и прочее
+        
+        for name in profile_ids[t]:
+            #print(name)
+            for sh_n in range(book.nsheets):
+                sh = book.sheet_by_index(sh_n)
+                for rx in range(sh.nrows):
+                    cx=1
+                    if 1:#for cx in range(sh.ncols):
+                        if name+" " in str(sh.cell_value(rx, cx)):
+                            print (sh_n+1, rx+1,cx+1)
+                            if sh.cell_value(rx, 2) in ('п.м.','п.м','м.','м'):
+                                length = sh.cell_value(rx, 5)
+                            else:
+                                length = 0
+                            price = sh.cell_value(rx, 7) * K
+                            res[name]=[price, length, 0]
+                            cnt+=1
+    print(cnt)
     return (res)
 
 if __name__ == '__main__':
-    print (parse_f("../прайс_октябрь_2014.xls", 1))
+    for i in (range(1,11)):
+        
+        print (i, parse_f("../прайс_декабрь2014.xlsx", i))
