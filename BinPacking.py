@@ -62,11 +62,11 @@ if __name__ == '__main__':
         print ()
 
 
-    aList = [1200,1200,1200,900,900,900,900,600,1200,1200,1200,600]
+    aList = 9*[1200,1200,1200,900,900,900,900,600,1200,1200,1200,600]
     packAndShow(aList, 6000)
 
-    aList = 13*[6600,3300]
-    packAndShow(aList, 6800)
+    #aList = 13*[6600,3300]
+    #packAndShow(aList, 6800)
 
-    aList = [5.1, 4.2, 4, 3, 2, 2]
-    packAndShow(aList, 10)
+    #aList = [5.1, 4.2, 4, 3, 2, 2]
+    #packAndShow(aList, 10)

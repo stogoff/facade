@@ -10,15 +10,14 @@
 
 
 from PyQt5 import  QtGui as QG, QtCore as QC, QtWidgets as QW, uic, Qt
-from cbr import get_euro_rate
-from parser import *
-from profile import *
 from operator import xor
 
 
 import sys
 import math
 import BinPacking
+import cbr
+import parser
 
 price = {}
 
@@ -38,7 +37,7 @@ if __name__ == '__main__':
             self.fh = {}
             self.profiles={}
             try:
-                rate, curr_code = get_euro_rate()
+                rate, curr_code = cbr.get_euro_rate()
                 self.label_rate.setText("1 %s =" % curr_code)
                 self.edit_rate.setText("%7.4f" % rate)
             except:
@@ -47,14 +46,15 @@ if __name__ == '__main__':
                 self.edit_rate.setText("???")
 
             for i,f in ((1,'pillars'), (2, 'headers')):
-                price[i] = parse_f("../прайс_декабрь2014.xlsx", i)
+                price[i] = parser.parse_f("../прайс_декабрь2014.xlsx", i)
                 ### Combobox:
                 cb = eval("self.comboBox_%d" % i)
                 cb.addItem("Выберите:")
                 for name in sorted(price[i]):
                     cb.addItem(name)
                 cb.activated[str].connect(eval("self.calc_%s" % f))
-                cb.setEnabled(False)
+                if i==1:
+                    cb.setEnabled(False)
 
 
         def calc_area(self):
@@ -145,29 +145,27 @@ if __name__ == '__main__':
             price_p = price_m * st_len
             self.label_20.setText("%.2f"%price_p)
             if not self.fl:  #нет перекрытий
-                if self.h > st_len: # 
+                if self.h > st_len: #
                     num = int(self.h // st_len) # число целых профилей на 1 ст
                     print(num)
                     self.profiles[item] += np*num*[st_len]
                     sum1 = np * num * price_p # стоимость целых профилей
-                    self.label_21.setText("%.2f"%sum1)
                     tail = self.h % st_len # длина нецелого
                     self.profiles[item] += np*[tail]
                     print ("tail=%d"%tail)
                     d = st_len // tail # сколько нецелых получится из 1 проф
                     sum2 = np / d * price_p # стоимость остатков
-                    self.label_22.setText("%.2f"%sum2)
+                    self.label_sum1.setText("%.2f"%(sum1+sum2))
                 else: # общая высота меньше длины профиля
                     n = int (st_len // self.h)
                     self.profiles[item] += np*[self.h]
                     sum1 = math.ceil(np / n) * price_p
-                    self.label_21.setText("%.2f"%sum1)
-                    sum2 = 0
-                    self.label_22.setText("%.2f"%sum2)
+                    self.label_sum1.setText("%.2f"%sum1)
+
             else: # есть перекрытия, стыки будем делать на них
                 sh = 0 # sum of heights
                 plist = []
-                
+
                 for i in range(self.fl):
                     sh += self.fh[i]
                     if self.fh[i] <= st_len:
@@ -182,25 +180,41 @@ if __name__ == '__main__':
                 for bin in bins:
                     print (bin)
                 sum1 = price_p * len(bins)
-                self.label_21.setText("%.2f"%sum1)
-                self.label_22.setText("")
-                    
+                self.label_sum1.setText("%.2f"%sum1)
             print (self.profiles)
 
 
-
-
-
-
-
-        def calc_headers(self):
-            s = 0
-            for i in range(self.tableWidget2.rowCount()):
-                price  = float(self.tableWidget2.item(i, 1).text())
-                num_headers = int(self.tableWidget2.item(i, 2).text())
-                s +=  num_headers * 6 * price
-            self.label_sum2.setText("%5.2f" % s)
-
+        def calc_headers(self, item):
+            if item not in price[2].keys():
+                return
+            if item not in self.profiles.keys():
+                self.profiles[item]=[]
+            np = int(self.get_number_field(self.edit_pillars)) # число стоек
+            st_len = price[2][item][1]
+            price_m = price[2][item][0]
+            price_p = price_m * st_len
+            hlist = []
+            nrows = int(self.get_number_field(self.edit_headers))
+            for i in range(np-1):
+                lh, ok =  \
+                        MyDialog2Class.getRes(msg= \
+                        "Расстояние между %d и %d стойками"% (i+1,i+2))
+                if lh<st_len:
+                    hlist += [lh]
+                else:
+                    l = lh
+                    while l > st_len:
+                        hlist += [st_len]
+                        l -= st_len
+                    hlist += [l]
+            allhlist = nrows*hlist
+            self.profiles[item] += allhlist
+            bins = BinPacking.pack(allhlist, st_len)
+            print ('Solution using', len(bins), 'bins:')
+            for bin in bins:
+                print (bin)
+            sum1 = price_p * len(bins)
+            print (sum1)
 
     dialog1_class = uic.loadUiType("dialog1.ui")[0]
     class MyDialog1Class(QW.QDialog, dialog1_class):
