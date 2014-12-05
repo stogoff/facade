@@ -7,7 +7,7 @@ COL_LEN = 'F'#'E'           # столбец "длина"
 COL_DENSITY = 'G'#'F'       # столбец "уд.вес"
 
 K = 1                # увеличение цены поставщиком со времени выхода прайса
-
+NDS = 1.18
 
 def col(col_letter):
     return ord(col_letter)-65
@@ -58,7 +58,7 @@ def parse_f(fn, t=1): # t - назначение профиля
         for rx in range(sh.nrows):
             name = sh.cell_value(rx, col(COL_NAME))
             if name in profile_ids[t]:
-                price = sh.cell_value(rx, col(COL_PRICE)) * K
+                price = sh.cell_value(rx, col(COL_PRICE)) * K * NDS
                 length = sh.cell_value(rx, col(COL_LEN))
                 density = sh.cell_value(rx, col(COL_DENSITY))
                 res[name]=[price, length, density]
@@ -77,7 +77,7 @@ def parse_f(fn, t=1): # t - назначение профиля
                                 length = sh.cell_value(rx, 5)
                             else:
                                 length = 0
-                            price = sh.cell_value(rx, 7) * K
+                            price = sh.cell_value(rx, 7) * K * NDS
                             res[name]=[price, length, 0]
                             cnt+=1
     print(cnt)

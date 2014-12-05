@@ -18,9 +18,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>260</y>
+      <y>280</y>
       <width>721</width>
-      <height>361</height>
+      <height>341</height>
      </rect>
     </property>
     <property name="tabShape">
@@ -39,19 +39,6 @@
      <attribute name="title">
       <string>Стойка</string>
      </attribute>
-     <widget class="QLabel" name="label_sum1">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>310</y>
-        <width>67</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>сумма</string>
-      </property>
-     </widget>
      <widget class="QComboBox" name="comboBox_1">
       <property name="geometry">
        <rect>
@@ -72,7 +59,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>целые</string>
+       <string>цена за пр</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_19">
@@ -85,13 +72,13 @@
        </rect>
       </property>
       <property name="text">
-       <string>цена</string>
+       <string>цена за м</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_20">
       <property name="geometry">
        <rect>
-        <x>280</x>
+        <x>300</x>
         <y>50</y>
         <width>67</width>
         <height>17</height>
@@ -104,7 +91,7 @@
      <widget class="QLabel" name="label_21">
       <property name="geometry">
        <rect>
-        <x>280</x>
+        <x>300</x>
         <y>80</y>
         <width>67</width>
         <height>17</height>
@@ -114,24 +101,44 @@
        <string>TextLabel</string>
       </property>
      </widget>
+     <widget class="QSplitter" name="splitter_4">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>280</y>
+        <width>110</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QLabel" name="label_sum1">
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>сумма</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_sum1_1">
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>€</string>
+       </property>
+      </widget>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
       <string>Ригель</string>
      </attribute>
-     <widget class="QLabel" name="label_sum2">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>310</y>
-        <width>67</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>сумма</string>
-      </property>
-     </widget>
      <widget class="QComboBox" name="comboBox_2">
       <property name="geometry">
        <rect>
@@ -141,6 +148,91 @@
         <height>27</height>
        </rect>
       </property>
+     </widget>
+     <widget class="QLabel" name="label_18">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>80</y>
+        <width>67</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>цена за пр</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_22">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>50</y>
+        <width>67</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>цена за м</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_23">
+      <property name="geometry">
+       <rect>
+        <x>300</x>
+        <y>50</y>
+        <width>67</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_24">
+      <property name="geometry">
+       <rect>
+        <x>300</x>
+        <y>80</y>
+        <width>67</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+     <widget class="QSplitter" name="splitter">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>280</y>
+        <width>110</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QLabel" name="label_sum2">
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>сумма</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_sum2_2">
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>€</string>
+       </property>
+      </widget>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_3">
