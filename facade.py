@@ -17,7 +17,8 @@ from operator import xor
 
 
 import sys
-import BinPacking 
+import math
+import BinPacking
 
 price = {}
 
@@ -35,6 +36,7 @@ if __name__ == '__main__':
 
             self.fl = 0
             self.fh = {}
+            self.profiles={}
             try:
                 rate, curr_code = get_euro_rate()
                 self.label_rate.setText("1 %s =" % curr_code)
@@ -118,7 +120,7 @@ if __name__ == '__main__':
                 for f in range(self.fl):
                     self.fh[f], ok =  \
                         MyDialog2Class.getRes(msg= \
-                        "Высота %d-го перекрытия"% (f+1))
+                        "Высота между %d и %d перекрытием"% (f,f+1))
                     if self.fh[f]>1000:
                         self.fh[f] /=1000
                 print(self.fl, self.fh)
@@ -129,35 +131,62 @@ if __name__ == '__main__':
             #s = 0 # сумма
             if item not in price[1].keys():
                 return
-            np = self.get_number_field(self.edit_pillars) # число стоек
-            print ("np=%d"%np)
+            if item not in self.profiles.keys():
+                self.profiles[item]=[]
+            np = int(self.get_number_field(self.edit_pillars)) # число стоек
+            print ("np=%s"%np)
             if not np:
                 QW.QMessageBox.question(self, 'Message',
                         "Укажите число стоек", QW.QMessageBox.Ok)
                 self.comboBox_1.setCurrentIndex(0)
                 return
+            st_len = price[1][item][1]
+            price_m = price[1][item][0]
+            price_p = price_m * st_len
+            self.label_20.setText("%.2f"%price_p)
             if not self.fl:  #нет перекрытий
-                st_len = price[1][item][1]
-                price_m = price[1][item][0]
-                self.label_20.setText("%.2f"%price_m)
-                if self.h > st_len:
-                    num = int(self.h // st_len) # число целых профилей
+                if self.h > st_len: # 
+                    num = int(self.h // st_len) # число целых профилей на 1 ст
                     print(num)
-                    sum1 = np * num * price_m # стоимость целых профилей
+                    self.profiles[item] += np*num*[st_len]
+                    sum1 = np * num * price_p # стоимость целых профилей
                     self.label_21.setText("%.2f"%sum1)
-                    tail = self.h % st_len # длина остатка
+                    tail = self.h % st_len # длина нецелого
+                    self.profiles[item] += np*[tail]
                     print ("tail=%d"%tail)
-                    d = st_len // tail # сколько остатков получится из 1 проф
-                    sum2 = np / d * price_m # стоимость остатков
+                    d = st_len // tail # сколько нецелых получится из 1 проф
+                    sum2 = np / d * price_p # стоимость остатков
                     self.label_22.setText("%.2f"%sum2)
+                else: # общая высота меньше длины профиля
+                    n = int (st_len // self.h)
+                    self.profiles[item] += np*[self.h]
+                    sum1 = math.ceil(np / n) * price_p
+                    self.label_21.setText("%.2f"%sum1)
+                    sum2 = 0
+                    self.label_22.setText("%.2f"%sum2)
+            else: # есть перекрытия, стыки будем делать на них
+                sh = 0 # sum of heights
+                plist = []
+                
+                for i in range(self.fl):
+                    sh += self.fh[i]
+                    if self.fh[i] <= st_len:
+                        plist += np*[self.fh[i]]
+                    else:
+                        print ("ERROR")
+                #теперь остаток от самого верхнего перекрытия до верха:
+                plist += np*[self.h-sh]
+                self.profiles[item] += plist
+                bins = BinPacking.pack(plist, st_len)
+                print ('Solution using', len(bins), 'bins:')
+                for bin in bins:
+                    print (bin)
+                sum1 = price_p * len(bins)
+                self.label_21.setText("%.2f"%sum1)
+                self.label_22.setText("")
                     
-                    
-                    #aList =  np * [tail]
-                    #bins = BinPacking.pack(aList, st_len)
-                    #print ('Solution using', len(bins), 'bins:')
-                    #for bin in bins:
-                    #    print (bin)
-                        
+            print (self.profiles)
+
 
 
 
@@ -203,6 +232,7 @@ if __name__ == '__main__':
             dialog = MyDialog2Class(parent)
             if msg:
                 dialog.label.setText(msg)
+            dialog.lineEdit.setFocus()
             result = dialog.exec_()
             res = dialog.lineEdit.text()
             return (float(res), result == QW.QDialog.Accepted)
