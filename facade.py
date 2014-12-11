@@ -20,6 +20,7 @@ import cbr
 import parser
 
 PRICE_FILE = "../прайс_декабрь2014.xlsx"
+PRICE_CURRENCY = 'USD'  # RUB or USD
 price = {}
 
 
@@ -54,6 +55,7 @@ class MyMainWindowClass(QWi.QMainWindow):
         self.edit_pillars.textChanged.connect(self.calc_fasteners)
         self.edit_height.textChanged.connect(self.height_changed)
         self.h = 0  # высота конструкции
+        self.np = 0  # число стоек
         self.fl = 0  # число перекрытий
         self.fh = {}  # высоты перекрытий
         self.profiles = {}  # список профилей "артикул: список длин"
@@ -71,15 +73,17 @@ class MyMainWindowClass(QWi.QMainWindow):
             self.label_rate.setText("1 EUR =")
             self.edit_rate.setText("???")
 
-        for i, f in ((1, 'pillars'), (2, 'headers')):
+        for i, f in ((1, 'pillars'), (2, 'headers'), (3, 'enhancers'),
+                     (5, 'covers'), ):
             price[i] = parser.parse_f(PRICE_FILE, i)
-            # Combobox:
-            cb = eval("self.comboBox_%d" % i)
-            cb.addItem("Выберите:")
-            for name in sorted(price[i]):
-                cb.addItem(name)
-            cb.activated[str].connect(eval("self.calc_%s" % f))
-            cb.setEnabled(False)
+            if i in (1, 2):
+                # Combobox:
+                cb = eval("self.comboBox_%d" % i)
+                cb.addItem("Выберите:")
+                for name in sorted(price[i]):
+                    cb.addItem(name)
+                cb.activated[str].connect(eval("self.calc_%s" % f))
+                cb.setEnabled(False)
 
     def calc_area(self):
         try:
@@ -117,27 +121,24 @@ class MyMainWindowClass(QWi.QMainWindow):
         else:
             self.comboBox_1.setEnabled(False)
         if self.h > 3:
-            self.fl, ok = MyDialog1Class.getres(msg="Число перекрытий:")
+            self.fl, ok = MyDialog1Class.get_res(msg="Число перекрытий:")
         if not self.fl:  # нет перекрытий
             pass
         else:
             for f in range(self.fl):
                 m = "Высота между %d и %d перекрытием" % (f, f + 1)
-                self.fh[f], ok = MyDialog2Class.getres(msg=m)
+                self.fh[f], ok = MyDialog2Class.get_res(msg=m)
                 if self.fh[f] > 1000:
                     self.fh[f] /= 1000
-            print(self.fl, self.fh)
 
     def calc_pillars(self, item):
-        print(item)
-        # s = 0 # сумма
         if item not in price[1].keys():
             return
         if item not in self.profiles.keys():
             self.profiles[item] = []
-        np = int(get_number_field(self.edit_pillars))  # число стоек
-        print("np=%s" % np)
-        if not np:
+        self.np = int(get_number_field(self.edit_pillars))  # число стоек
+        print("np=%s" % self.np)
+        if not self.np:
             mb = QWi.QMessageBox()
             mb.question(mb, 'Message',
                         "Укажите число стоек", QWi.QMessageBox.Ok)
@@ -154,33 +155,29 @@ class MyMainWindowClass(QWi.QMainWindow):
         if not self.fl:  # нет перекрытий
             if self.h > st_len:  #
                 num = int(self.h // st_len)  # число целых профилей на 1 ст
-                print(num)
-                self.profiles[item] += np * num * [st_len]
-                sum1 = np * num * price_p  # стоимость целых профилей
+                self.profiles[item] += self.np * num * [st_len]
+                sum1 = self.np * num * price_p  # стоимость целых профилей
                 tail = self.h % st_len  # длина нецелого
-                self.profiles[item] += np * [tail]
-                print("tail=%d" % tail)
+                self.profiles[item] += self.np * [tail]
                 d = st_len // tail  # сколько нецелых получится из 1 проф
-                sum2 = np / d * price_p  # стоимость остатков
+                sum2 = self.np / d * price_p  # стоимость остатков
                 self.label_sum1.setText("%.2f" % (sum1 + sum2))
             else:  # общая высота меньше длины профиля
                 n = int(st_len // self.h)
-                self.profiles[item] += np * [self.h]
-                sum1 = math.ceil(np / n) * price_p
+                self.profiles[item] += self.np * [self.h]
+                sum1 = math.ceil(self.np / n) * price_p
                 self.label_sum1.setText("%.2f" % sum1)
-
         else:  # есть перекрытия, стыки будем делать на них
             sh = 0  # sum of heights
             plist = []
-
             for i in range(self.fl):
                 sh += self.fh[i]
                 if self.fh[i] <= st_len:
-                    plist += np * [self.fh[i]]
+                    plist += self.np * [self.fh[i]]
                 else:
                     print("ERROR")
             # теперь остаток от самого верхнего перекрытия до верха:
-            plist += np * [self.h - sh]
+            plist += self.np * [self.h - sh]
             self.profiles[item] += plist
             bins = BinPacking.pack(plist, st_len)
             print('Solution using', len(bins), 'bins:')
@@ -188,41 +185,136 @@ class MyMainWindowClass(QWi.QMainWindow):
             # print (bin)
             sum1 = price_p * len(bins)
             self.label_sum1.setText("%.2f" % sum1)
+        self.calc_enhancers()
+        return
 
     def calc_headers(self, item):
         if item not in price[2].keys():
             return
         if item not in self.profiles.keys():
             self.profiles[item] = []
-        np = int(get_number_field(self.edit_pillars))  # число стоек
         st_len = price[2][item][1]
         price_m = price[2][item][0]  # цена за 1 м в USD
-        price_m /= self.eur_usd  # пересчитываем в евро
-        # price_m /= self.eur_rub    # вариант для прайса в рублях
+        if PRICE_CURRENCY == 'USD':
+            price_m /= self.eur_usd  # пересчитываем в евро
+        else:
+            price_m /= self.eur_rub  # вариант для прайса в рублях
         price_p = price_m * st_len
         self.label_23.setText("%.2f" % price_m)
         self.label_24.setText("%.2f" % price_p)
-        hlist = []
-        nrows = int(get_number_field(self.edit_headers))
-        for i in range(np - 1):
+        h_list = []
+        n_rows = int(get_number_field(self.edit_headers))
+        for i in range(self.np - 1):
             m = "Расстояние между %d и %d стойками" % (i + 1, i + 2)
-            lh, ok = MyDialog2Class.getres(msg=m)
+            lh, ok = MyDialog2Class.get_res(msg=m)
             if lh < st_len:
-                hlist += [lh]
+                h_list += [lh]
             else:
                 l = lh
                 while l > st_len:
-                    hlist += [st_len]
+                    h_list += [st_len]
                     l -= st_len
-                hlist += [l]
-        allhlist = nrows * hlist
-        self.profiles[item] += allhlist
-        bins = BinPacking.pack(allhlist, st_len)
+                h_list += [l]
+        all_h_list = n_rows * h_list
+        self.profiles[item] += all_h_list
+        bins = BinPacking.pack(all_h_list, st_len)
         print('Solution using', len(bins), 'bins:')
         # for bin in bins:
         # print (bin)
         sum1 = price_p * len(bins)
         self.label_sum2.setText("%.2f" % sum1)
+
+    def calc_enhancers(self):
+        dict_enh = {
+            'ТП-50310': 'ТП-5013-01Н',
+            'ЭК-5002': 'ТП-5013Н',
+            'ТП-50311': 'ТП-5013Н',
+            'ЭК-5006': 'ТП-5013-02Н',
+            'ТП-50312': 'ТП-5013-02Н',
+            'ТП-50313': 'ТП-5013-03Н',
+            'ТП-50314': 'ТП-5013-04Н',
+            'ТП-50314-01': 'ТП-5013-05Н',
+            'ТП-50314-02': 'ТП-5013-06Н'
+        }
+        for art, ls in self.profiles.items():
+            print(art)
+            if art in dict_enh.keys():
+                if len(ls) > self.np:
+                    # считаем число услилителей
+                    e250 = self.np * (len(ls) // self.np + 1)
+                else:
+                    e250 = self.np * 2
+                if self.fl > 0:
+                    e800 = self.np * self.fl
+                else:
+                    e800 = 0
+                e_list = e250 * [0.25] + e800 * [0.8]
+                item = dict_enh[art]
+                if item not in price[3].keys():
+                    mb = QWi.QMessageBox()
+                    mb.information(mb, 'Message',
+                                   "В прайсе отсутствует усилитель %s" % item,
+                                   QWi.QMessageBox.Ok)
+                    return -1
+                self.label_29.setText(item)
+                st_len = price[3][item][1]
+                price_m = price[3][item][0]  # цена за 1 м в USD
+                if PRICE_CURRENCY == 'USD':
+                    price_m /= self.eur_usd  # пересчитываем в евро
+                else:
+                    price_m /= self.eur_rub  # вариант для прайса в рублях
+                price_p = price_m * st_len
+                self.label_25.setText("%.2f" % price_m)
+                self.label_26.setText("%.2f" % price_p)
+                bins = BinPacking.pack(e_list, st_len)
+                print('Solution using', len(bins), 'bins:')
+                sum1 = price_p * len(bins)
+                self.label_sum3.setText("%.2f" % sum1)
+
+        return
+
+    def calc_covers(self):
+        dict_cov = {
+            'ТП-50310': 'ТП-5015М',  # pillars
+            'ЭК-5002': 'ТП-5015М',
+            'ТП-50311': 'ТП-5015М',
+            'ЭК-5006': 'ТП-5015М',
+            'ТП-50312': 'ТП-5015М',
+            'ТП-50313': 'ТП-5015М',
+            'ТП-50314': 'ТП-5015М',
+            'ТП-50314-01': 'ТП-5015М',
+            'ТП-50314-02': 'ТП-5015М',
+            'ТП-50320': 'ТП-5014М',  # headers
+            'ЭК-5003': 'ТП-5014М',
+            'ТП-50321': 'ТП-5014М',
+            'ЭК-5001': 'ТП-5014М',
+            'ТП-50322': 'ТП-5014М',
+            'ТП-50323': 'ТП-5014М',
+            'ТП-50324': 'ТП-5014М',
+            'ТП-50325': 'ТП-5014М',
+            'ТП-50326': 'ТП-5014М',
+            'ТП-50327': 'ТП-5014М',
+            'ТП-50327-01': 'ТП-5014М'
+        }
+        for art, ls in self.profiles.items():
+            print(art)
+            if art in dict_cov.keys():
+                c_list = ls
+                item = dict_cov[art]
+                self.label_33.setText(item)
+                st_len = price[5][item][1]
+                price_m = price[5][item][0]  # цена за 1 м в USD
+                if PRICE_CURRENCY == 'USD':
+                    price_m /= self.eur_usd  # пересчитываем в евро
+                else:
+                    price_m /= self.eur_rub  # вариант для прайса в рублях
+                price_p = price_m * st_len
+                self.label_34.setText("%.2f" % price_m)
+                self.label_32.setText("%.2f" % price_p)
+                bins = BinPacking.pack(c_list, st_len)
+                print('Solution using', len(bins), 'bins:')
+                sum1 = price_p * len(bins)
+                self.label_sum3.setText("%.2f" % sum1)
 
 
 class MyDialog1Class(QWi.QDialog):
@@ -231,8 +323,7 @@ class MyDialog1Class(QWi.QDialog):
         uic.loadUi("dialog1.ui", self)
 
     @staticmethod
-    def getres(parent=None, msg=""):
-        print(msg)
+    def get_res(parent=None, msg=""):
         dialog = MyDialog1Class(parent)
         if msg:
             dialog.label.setText(msg)
@@ -247,8 +338,7 @@ class MyDialog2Class(QWi.QDialog):
         uic.loadUi("dialog2.ui", self)
 
     @staticmethod
-    def getres(parent=None, msg=""):
-        print(msg)
+    def get_res(parent=None, msg=""):
         dialog = MyDialog2Class(parent)
         if msg:
             dialog.label.setText(msg)
@@ -262,6 +352,4 @@ if __name__ == '__main__':
     app = QWi.QApplication(sys.argv)
     myWindow = MyMainWindowClass(None)
     myWindow.show()
-    print("test0")
-    r = app.exec_()
-    print(r)
+    app.exec_()

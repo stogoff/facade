@@ -1,10 +1,10 @@
 import xlrd
 
-WS_NUM = 2          # порядковый номер листа в книге xls
-COL_NAME = 'B'      # столбец "наименование"
-COL_PRICE = 'M'     # столбец "цена"
-COL_LEN = 'F'       # столбец "длина"
-COL_DENSITY = 'G'   # столбец "уд.вес"
+WS_NUM = 2  # порядковый номер листа в книге xls
+COL_NAME = 'B'  # столбец "наименование"
+COL_PRICE = 'M'  # столбец "цена"
+COL_LEN = 'F'  # столбец "длина"
+COL_DENSITY = 'G'  # столбец "уд.вес"
 
 K = 1  # увеличение цены поставщиком со времени выхода прайса
 NDS = 1.18
@@ -64,7 +64,6 @@ def parse_f(fn, t=1):  # t - назначение профиля
                 density = sh.cell_value(rx, col(COL_DENSITY))
                 res[name] = [price, length, density]
     else:  # резина и прочее
-
         for name in profile_ids[t]:
             # print(name)
             for sh_n in range(book.nsheets):
@@ -73,7 +72,7 @@ def parse_f(fn, t=1):  # t - назначение профиля
                     cx = 1
                     if 1:  # for cx in range(sh.ncols):
                         if name + " " in str(sh.cell_value(rx, cx)):
-                            print(sh_n + 1, rx + 1, cx + 1)
+
                             if sh.cell_value(rx, 2) in ('п.м.', 'п.м', 'м.', 'м'):
                                 length = sh.cell_value(rx, 5)
                             else:
@@ -81,10 +80,9 @@ def parse_f(fn, t=1):  # t - назначение профиля
                             price = sh.cell_value(rx, 7) * K * NDS
                             res[name] = [price, length, 0]
                             cnt += 1
-    print(cnt)
     return res
 
 
 if __name__ == '__main__':
-    for i in (range(1, 11)):
+    for i in (1, 2, 3, 5):
         print(i, parse_f("../прайс_декабрь2014.xlsx", i))
