@@ -19,6 +19,7 @@ import BinPacking
 import cbr
 import parser
 
+
 PRICE_FILE = "../прайс_декабрь2014.xlsx"
 PRICE_CURRENCY = 'USD'  # RUB or USD
 price = {}
@@ -62,13 +63,13 @@ class MyMainWindowClass(QWi.QMainWindow):
         self.eur_rub = 0
         self.eur_usd = 0
         self.usd_rub = 0
-        if 1:  # try:
+        try:
             self.eur_rub, curr_code = cbr.get_euro_rate()
             self.usd_rub = cbr.get_usd_rate()
             self.eur_usd = self.eur_rub / self.usd_rub
             self.label_rate.setText("1 %s =" % curr_code)
             self.edit_rate.setText("%7.4f" % self.eur_rub)
-        else:  # except:
+        except:
             self.eur_rub = 999999
             self.label_rate.setText("1 EUR =")
             self.edit_rate.setText("???")
@@ -154,7 +155,7 @@ class MyMainWindowClass(QWi.QMainWindow):
 
         if not self.fl:  # нет перекрытий
             if self.h > st_len:  #
-                num = int(self.h // st_len)  # число целых профилей на 1 ст
+                num = int(self.h // st_len)  # число целых профилей на 1 стойку
                 self.profiles[item] += self.np * num * [st_len]
                 sum1 = self.np * num * price_p  # стоимость целых профилей
                 tail = self.h % st_len  # длина нецелого
@@ -270,7 +271,7 @@ class MyMainWindowClass(QWi.QMainWindow):
                 print('Solution using', len(bins), 'bins:')
                 sum1 = price_p * len(bins)
                 self.label_sum3.setText("%.2f" % sum1)
-
+                self.profiles[item] = e_list
         return
 
     def calc_covers(self):
@@ -296,11 +297,20 @@ class MyMainWindowClass(QWi.QMainWindow):
             'ТП-50327': 'ТП-5014М',
             'ТП-50327-01': 'ТП-5014М'
         }
+        sum1 = 0
         for art, ls in self.profiles.items():
             print(art)
+
             if art in dict_cov.keys():
                 c_list = ls
                 item = dict_cov[art]
+                if item not in price[3].keys():
+                    mb = QWi.QMessageBox()
+                    mb.information(mb, 'Message',
+                                   "В прайсе отсутствует крышка %s" % item,
+                                   QWi.QMessageBox.Ok)
+                    return -1
+
                 self.label_33.setText(item)
                 st_len = price[5][item][1]
                 price_m = price[5][item][0]  # цена за 1 м в USD
@@ -313,8 +323,9 @@ class MyMainWindowClass(QWi.QMainWindow):
                 self.label_32.setText("%.2f" % price_p)
                 bins = BinPacking.pack(c_list, st_len)
                 print('Solution using', len(bins), 'bins:')
-                sum1 = price_p * len(bins)
+                sum1 += price_p * len(bins)
                 self.label_sum3.setText("%.2f" % sum1)
+                self.profiles[item] = c_list
 
 
 class MyDialog1Class(QWi.QDialog):
