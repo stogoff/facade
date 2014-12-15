@@ -55,7 +55,6 @@ def parse_f(fn, t=1):  # t - назначение профиля
     # print ("Worksheet name(s):", book.sheet_names())
     if t < 8 or t > 9:  # металл
         sh = book.sheet_by_index(WS_NUM - 1)  # так как с 0
-        # print (sh.name, sh.nrows, sh.ncols)
         for rx in range(sh.nrows):
             name = sh.cell_value(rx, col(COL_NAME))
             if name in profile_ids[t]:
@@ -69,8 +68,7 @@ def parse_f(fn, t=1):  # t - назначение профиля
             for sh_n in range(book.nsheets):
                 sh = book.sheet_by_index(sh_n)
                 for rx in range(sh.nrows):
-                    cx = 1
-                    if 1:  # for cx in range(sh.ncols):
+                    for cx in range(sh.ncols):
                         if name + " " in str(sh.cell_value(rx, cx)):
 
                             if sh.cell_value(rx, 2) in ('п.м.', 'п.м', 'м.', 'м'):
@@ -80,9 +78,10 @@ def parse_f(fn, t=1):  # t - назначение профиля
                             price = sh.cell_value(rx, 7) * K * NDS
                             res[name] = [price, length, 0]
                             cnt += 1
+    print("import %d goods" % len(res))
     return res
 
 
 if __name__ == '__main__':
-    for i in (1, 2, 3, 5):
+    for i in (range(1, 11)):
         print(i, parse_f("../прайс_декабрь2014.xlsx", i))

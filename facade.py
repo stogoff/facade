@@ -9,7 +9,6 @@
 # PyQt5     http://www.riverbankcomputing.com/software/pyqt/download5
 # xlrd      https://pypi.python.org/pypi/xlrd
 
-
 import sys
 import math
 
@@ -51,10 +50,17 @@ class MyMainWindowClass(QWi.QMainWindow):
     def __init__(self, parent=None):
         QWi.QMainWindow.__init__(self, parent)
         uic.loadUi("main.ui", self)
+        # set current tab
+        self.tabWidget.setCurrentIndex(0)
+        # connecting:
         self.edit_width.textChanged.connect(self.calc_area)
         self.edit_height.textChanged.connect(self.calc_area)
         self.edit_pillars.textChanged.connect(self.calc_fasteners)
         self.edit_height.textChanged.connect(self.height_changed)
+        self.actionOpen_pricelist.triggered.connect(self.custom_load)
+        self.actionExit.triggered.connect(self.close)
+        self.pushButton.clicked.connect(self.print_all)
+        # globals:
         self.h = 0  # высота конструкции
         self.np = 0  # число стоек
         self.fl = 0  # число перекрытий
@@ -63,6 +69,8 @@ class MyMainWindowClass(QWi.QMainWindow):
         self.eur_rub = 0
         self.eur_usd = 0
         self.usd_rub = 0
+        # currency
+        # noinspection PyBroadException
         try:
             self.eur_rub, curr_code = cbr.get_euro_rate()
             self.usd_rub = cbr.get_usd_rate()
@@ -73,18 +81,37 @@ class MyMainWindowClass(QWi.QMainWindow):
             self.eur_rub = 999999
             self.label_rate.setText("1 EUR =")
             self.edit_rate.setText("???")
+        self.load_price(PRICE_FILE)
 
+    def print_all(self):
+        for k, v in self.profiles.items():
+            print(k)
+            print(v)
+
+    # noinspection PyMethodMayBeStatic
+    def load_price(self, fn):
         for i, f in ((1, 'pillars'), (2, 'headers'), (3, 'enhancers'),
-                     (5, 'covers'), ):
-            price[i] = parser.parse_f(PRICE_FILE, i)
+                     (5, 'covers'), (6, 'pressings')):
+            price[i] = parser.parse_f(fn, i)
             if i in (1, 2):
                 # Combobox:
                 cb = eval("self.comboBox_%d" % i)
+                cb.clear()
                 cb.addItem("Выберите:")
                 for name in sorted(price[i]):
                     cb.addItem(name)
                 cb.activated[str].connect(eval("self.calc_%s" % f))
                 cb.setEnabled(False)
+        return 0
+
+    def custom_load(self):
+        dia = QWi.QFileDialog()
+        file_name, flt = dia.getOpenFileName(self, 'Price list file',
+                                             './', '*.xls *.xlsx')
+        if file_name:
+            print(file_name)
+            self.load_price(file_name)
+        return 0
 
     def calc_area(self):
         try:
@@ -101,6 +128,7 @@ class MyMainWindowClass(QWi.QMainWindow):
         self.label_area.setText("%5.3f" % area)
         perimeter = (w + h) * 2
         self.label_per.setText("%5.3f" % perimeter)
+        return 0
 
     def calc_fasteners(self):
         try:
@@ -114,6 +142,7 @@ class MyMainWindowClass(QWi.QMainWindow):
             self.comboBox_2.setEnabled(True)
         else:
             self.comboBox_2.setEnabled(False)
+        return 0
 
     def height_changed(self):
         self.h = get_number_field(self.edit_height)
@@ -133,12 +162,15 @@ class MyMainWindowClass(QWi.QMainWindow):
                     self.fh[f] /= 1000
 
     def calc_pillars(self, item):
-        if item not in price[1].keys():
-            return
-        if item not in self.profiles.keys():
-            self.profiles[item] = []
+        # очистим список профилей от других стоек (и усилителей):
+        pl = list(self.profiles)
+        for i in pl:
+            # если это стойка или усилитель:
+            if i in price[1].keys() or i in price[3].keys():
+                del self.profiles[i]
+                print("%s deleted" % i)
+        self.profiles[item] = []
         self.np = int(get_number_field(self.edit_pillars))  # число стоек
-        print("np=%s" % self.np)
         if not self.np:
             mb = QWi.QMessageBox()
             mb.question(mb, 'Message',
@@ -147,8 +179,10 @@ class MyMainWindowClass(QWi.QMainWindow):
             return
         st_len = price[1][item][1]
         price_m = price[1][item][0]  # цена за 1 м в USD
-        price_m /= self.eur_usd  # пересчитываем в евро
-        # price_m /= self.eur_rub    # вариант для прайса в рублях
+        if PRICE_CURRENCY == 'USD':
+            price_m /= self.eur_usd  # пересчитываем в евро
+        else:
+            price_m /= self.eur_rub  # вариант для прайса в рублях
         price_p = price_m * st_len
         self.label_20.setText("%.2f" % price_m)
         self.label_21.setText("%.2f" % price_p)
@@ -187,13 +221,17 @@ class MyMainWindowClass(QWi.QMainWindow):
             sum1 = price_p * len(bins)
             self.label_sum1.setText("%.2f" % sum1)
         self.calc_enhancers()
-        return
+        self.calc_covers(1)
+        return 0
 
     def calc_headers(self, item):
-        if item not in price[2].keys():
-            return
-        if item not in self.profiles.keys():
-            self.profiles[item] = []
+        # очистим список профилей от других ригелей:
+        pl = list(self.profiles)
+        for i in pl:
+            if i in price[2].keys():  # то есть это ригель
+                del self.profiles[i]
+                print("%s deleted" % i)
+        self.profiles[item] = []
         st_len = price[2][item][1]
         price_m = price[2][item][0]  # цена за 1 м в USD
         if PRICE_CURRENCY == 'USD':
@@ -224,6 +262,8 @@ class MyMainWindowClass(QWi.QMainWindow):
         # print (bin)
         sum1 = price_p * len(bins)
         self.label_sum2.setText("%.2f" % sum1)
+        self.calc_covers(2)
+        return 0
 
     def calc_enhancers(self):
         dict_enh = {
@@ -237,9 +277,10 @@ class MyMainWindowClass(QWi.QMainWindow):
             'ТП-50314-01': 'ТП-5013-05Н',
             'ТП-50314-02': 'ТП-5013-06Н'
         }
-        for art, ls in self.profiles.items():
-            print(art)
+        pillars = list(self.profiles)
+        for art in pillars:
             if art in dict_enh.keys():
+                ls = self.profiles[art]
                 if len(ls) > self.np:
                     # считаем число услилителей
                     e250 = self.np * (len(ls) // self.np + 1)
@@ -268,50 +309,58 @@ class MyMainWindowClass(QWi.QMainWindow):
                 self.label_25.setText("%.2f" % price_m)
                 self.label_26.setText("%.2f" % price_p)
                 bins = BinPacking.pack(e_list, st_len)
-                print('Solution using', len(bins), 'bins:')
+                print('Solution using', len(bins), 'bins')
                 sum1 = price_p * len(bins)
                 self.label_sum3.setText("%.2f" % sum1)
                 self.profiles[item] = e_list
-        return
+        return 0
 
-    def calc_covers(self):
-        dict_cov = {
-            'ТП-50310': 'ТП-5015М',  # pillars
-            'ЭК-5002': 'ТП-5015М',
-            'ТП-50311': 'ТП-5015М',
-            'ЭК-5006': 'ТП-5015М',
-            'ТП-50312': 'ТП-5015М',
-            'ТП-50313': 'ТП-5015М',
-            'ТП-50314': 'ТП-5015М',
-            'ТП-50314-01': 'ТП-5015М',
-            'ТП-50314-02': 'ТП-5015М',
-            'ТП-50320': 'ТП-5014М',  # headers
-            'ЭК-5003': 'ТП-5014М',
-            'ТП-50321': 'ТП-5014М',
-            'ЭК-5001': 'ТП-5014М',
-            'ТП-50322': 'ТП-5014М',
-            'ТП-50323': 'ТП-5014М',
-            'ТП-50324': 'ТП-5014М',
-            'ТП-50325': 'ТП-5014М',
-            'ТП-50326': 'ТП-5014М',
-            'ТП-50327': 'ТП-5014М',
-            'ТП-50327-01': 'ТП-5014М'
-        }
+    def calc_covers(self, subtype):
+        if subtype == 1:
+            dict_cov = {
+                'ТП-50310': 'ТП-5015М',  # pillars
+                'ЭК-5002': 'ТП-5015М',
+                'ТП-50311': 'ТП-5015М',
+                'ЭК-5006': 'ТП-5015М',
+                'ТП-50312': 'ТП-5015М',
+                'ТП-50313': 'ТП-5015М',
+                'ТП-50314': 'ТП-5015М',
+                'ТП-50314-01': 'ТП-5015М',
+                'ТП-50314-02': 'ТП-5015М'
+            }
+        else:
+            dict_cov = {
+                'ТП-50320': 'ТП-5014М',  # headers
+                'ЭК-5003': 'ТП-5014М',
+                'ТП-50321': 'ТП-5014М',
+                'ЭК-5001': 'ТП-5014М',
+                'ТП-50322': 'ТП-5014М',
+                'ТП-50323': 'ТП-5014М',
+                'ТП-50324': 'ТП-5014М',
+                'ТП-50325': 'ТП-5014М',
+                'ТП-50326': 'ТП-5014М',
+                'ТП-50327': 'ТП-5014М',
+                'ТП-50327-01': 'ТП-5014М'
+            }
         sum1 = 0
-        for art, ls in self.profiles.items():
-            print(art)
-
+        plist = list(self.profiles)
+        # перебираем все профиля
+        for art in plist:
+            print("art:%s" % art)
+            if art in dict_cov.values():
+                del self.profiles[art]
+                print("%s deleted" % art)
+        for art in plist:
             if art in dict_cov.keys():
-                c_list = ls
+                c_list = self.profiles[art]
                 item = dict_cov[art]
-                if item not in price[3].keys():
+                print("added %s" % item)
+                if item not in price[5].keys():
                     mb = QWi.QMessageBox()
                     mb.information(mb, 'Message',
                                    "В прайсе отсутствует крышка %s" % item,
                                    QWi.QMessageBox.Ok)
                     return -1
-
-                self.label_33.setText(item)
                 st_len = price[5][item][1]
                 price_m = price[5][item][0]  # цена за 1 м в USD
                 if PRICE_CURRENCY == 'USD':
@@ -319,13 +368,51 @@ class MyMainWindowClass(QWi.QMainWindow):
                 else:
                     price_m /= self.eur_rub  # вариант для прайса в рублях
                 price_p = price_m * st_len
-                self.label_34.setText("%.2f" % price_m)
-                self.label_32.setText("%.2f" % price_p)
+
                 bins = BinPacking.pack(c_list, st_len)
-                print('Solution using', len(bins), 'bins:')
+                print('Solution using', len(bins), 'bins')
                 sum1 += price_p * len(bins)
-                self.label_sum3.setText("%.2f" % sum1)
+
                 self.profiles[item] = c_list
+                if subtype == 1:  # first time
+                    self.label_33.setText(item)
+                    self.label_34.setText("%.2f" % price_m)
+                    self.label_32.setText("%.2f" % price_p)
+                    self.label_sum5.setText("%.2f" % sum1)
+                else:
+                    self.label_36.setText(item)
+                    self.label_35.setText("%.2f" % price_m)
+                    self.label_39.setText("%.2f" % price_p)
+                    self.label_sum5_2.setText("%.2f" % sum1)
+        return 0
+
+        # def calc_pressings(self):
+        # if 1:
+        # if 1:
+        # item = 'ТП-5005М'
+        # if item not in price[6].keys():
+        # mb = QWi.QMessageBox()
+        # mb.information(mb, 'Message',
+        #                                "В прайсе отсутствует крышка %s" % item,
+        #                                QWi.QMessageBox.Ok)
+        #                 return -1
+        #
+        #             self.label_33.setText(item)
+        #             st_len = price[5][item][1]
+        #             price_m = price[5][item][0]  # цена за 1 м в USD
+        #             if PRICE_CURRENCY == 'USD':
+        #                 price_m /= self.eur_usd  # пересчитываем в евро
+        #             else:
+        #                 price_m /= self.eur_rub  # вариант для прайса в рублях
+        #             price_p = price_m * st_len
+        #             self.label_34.setText("%.2f" % price_m)
+        #             self.label_32.setText("%.2f" % price_p)
+        #             bins = BinPacking.pack(c_list, st_len)
+        #             print('Solution using', len(bins), 'bins:')
+        #             sum1 += price_p * len(bins)
+        #             self.label_sum3.setText("%.2f" % sum1)
+        #             self.profiles[item] = c_list
+        #
 
 
 class MyDialog1Class(QWi.QDialog):

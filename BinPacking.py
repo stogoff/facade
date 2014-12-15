@@ -27,41 +27,40 @@ class Bin(object):
 def pack(values, maxvalue):
     values = sorted(values, reverse=True)
     bins = []
-    print(values)
 
     for item in values:
         # Try to fit item into a bin
-        for pbin in bins:
-            if pbin.sum + item <= maxvalue:
+        for p_bin in bins:
+            if p_bin.sum + item <= maxvalue:
                 # print 'Adding', item, 'to', bin
-                pbin.append(item)
+                p_bin.append(item)
                 break
         else:
             # item didn't fit into any bin, start a new bin
             # print 'Making new bin for', item
-            pbin = Bin()
-            pbin.append(item)
-            bins.append(pbin)
+            p_bin = Bin()
+            p_bin.append(item)
+            bins.append(p_bin)
 
     return bins
 
 
 if __name__ == '__main__':
 
-    def packandshow(alist, maxvalue):
+    def pack_and_show(a_list, maxvalue):
         """ Pack a list into bins and show the result """
-        print('List with sum', sum(alist), 'requires at least',
-              (sum(alist) + maxvalue - 1) / maxvalue, 'bins')
+        print('List with sum', sum(a_list), 'requires at least',
+              (sum(a_list) + maxvalue - 1) / maxvalue, 'bins')
 
-        bins = pack(alist, maxvalue)
+        bins = pack(a_list, maxvalue)
         print('Solution using', len(bins), 'bins:')
-        for pbin in bins:
-            print(pbin)
+        for p_bin in bins:
+            print(p_bin)
 
         print()
 
     aList = 9 * [1200, 1200, 1200, 900, 900, 900, 900, 600, 1200, 1200, 1200, 600]
-    packandshow(aList, 6000)
+    pack_and_show(aList, 6000)
 
     # aList = 13*[6600,3300]
     # packAndShow(aList, 6800)
