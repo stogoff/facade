@@ -27,7 +27,7 @@
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>5</number>
     </property>
     <property name="documentMode">
      <bool>false</bool>
@@ -548,17 +548,102 @@
      <attribute name="title">
       <string>Прижим</string>
      </attribute>
-     <widget class="QLabel" name="label_sum6">
+     <widget class="QSplitter" name="splitter_8">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>310</y>
+        <y>270</y>
+        <width>110</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QLabel" name="label_sum6">
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>сумма</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_sum2_7">
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>€</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QLabel" name="label_41">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>100</y>
         <width>67</width>
         <height>17</height>
        </rect>
       </property>
       <property name="text">
-       <string>сумма</string>
+       <string>цена за пр</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_42">
+      <property name="geometry">
+       <rect>
+        <x>290</x>
+        <y>70</y>
+        <width>67</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_43">
+      <property name="geometry">
+       <rect>
+        <x>290</x>
+        <y>100</y>
+        <width>67</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_44">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>70</y>
+        <width>67</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>цена за м</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_45">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>40</y>
+        <width>161</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
       </property>
      </widget>
     </widget>
@@ -758,9 +843,9 @@
       <widget class="QLineEdit" name="edit_rate">
        <property name="font">
         <font>
-         <pointsize>12</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
+         <pointsize>11</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
         </font>
        </property>
        <property name="text">
@@ -953,7 +1038,20 @@
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>Calc All</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_40">
+    <property name="geometry">
+     <rect>
+      <x>500</x>
+      <y>200</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
     </property>
    </widget>
    <zorder>layoutWidget</zorder>
@@ -970,6 +1068,7 @@
    <zorder>layoutWidget_5</zorder>
    <zorder>layoutWidget_7</zorder>
    <zorder>pushButton</zorder>
+   <zorder>label_40</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

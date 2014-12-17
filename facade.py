@@ -87,6 +87,21 @@ class MyMainWindowClass(QWi.QMainWindow):
         for k, v in self.profiles.items():
             print(k)
             print(v)
+            s = self.calc_all()
+            self.label_40.setText("%.2f" % s)
+
+    def calc_all(self):
+        s, st_len, price_m, price_p = 0, 0, 0, 0
+        for k, prof_list in self.profiles.items():
+            for p_type in range(11):
+                try:
+                    st_len, price_m, price_p = self.get_data(p_type, k)
+                except KeyError:
+                    pass
+            print(st_len, price_m, price_p)
+            bins = BinPacking.pack(prof_list, st_len)
+            s += price_p * len(bins)
+        return s
 
     # noinspection PyMethodMayBeStatic
     def load_price(self, fn):
@@ -161,6 +176,16 @@ class MyMainWindowClass(QWi.QMainWindow):
                 if self.fh[f] > 1000:
                     self.fh[f] /= 1000
 
+    def get_data(self, p_type, item):
+        st_len = price[p_type][item][1]
+        price_m = price[p_type][item][0]  # цена за 1 м в USD
+        if PRICE_CURRENCY == 'USD':
+            price_m /= self.eur_usd  # пересчитываем в евро
+        else:
+            price_m /= self.eur_rub  # вариант для прайса в рублях
+        price_p = price_m * st_len
+        return st_len, price_m, price_p
+
     def calc_pillars(self, item):
         # очистим список профилей от других стоек (и усилителей):
         pl = list(self.profiles)
@@ -177,13 +202,7 @@ class MyMainWindowClass(QWi.QMainWindow):
                         "Укажите число стоек", QWi.QMessageBox.Ok)
             self.comboBox_1.setCurrentIndex(0)
             return
-        st_len = price[1][item][1]
-        price_m = price[1][item][0]  # цена за 1 м в USD
-        if PRICE_CURRENCY == 'USD':
-            price_m /= self.eur_usd  # пересчитываем в евро
-        else:
-            price_m /= self.eur_rub  # вариант для прайса в рублях
-        price_p = price_m * st_len
+        st_len, price_m, price_p = self.get_data(1, item)
         self.label_20.setText("%.2f" % price_m)
         self.label_21.setText("%.2f" % price_p)
 
@@ -232,13 +251,7 @@ class MyMainWindowClass(QWi.QMainWindow):
                 del self.profiles[i]
                 print("%s deleted" % i)
         self.profiles[item] = []
-        st_len = price[2][item][1]
-        price_m = price[2][item][0]  # цена за 1 м в USD
-        if PRICE_CURRENCY == 'USD':
-            price_m /= self.eur_usd  # пересчитываем в евро
-        else:
-            price_m /= self.eur_rub  # вариант для прайса в рублях
-        price_p = price_m * st_len
+        st_len, price_m, price_p = self.get_data(2, item)
         self.label_23.setText("%.2f" % price_m)
         self.label_24.setText("%.2f" % price_p)
         h_list = []
@@ -299,13 +312,7 @@ class MyMainWindowClass(QWi.QMainWindow):
                                    QWi.QMessageBox.Ok)
                     return -1
                 self.label_29.setText(item)
-                st_len = price[3][item][1]
-                price_m = price[3][item][0]  # цена за 1 м в USD
-                if PRICE_CURRENCY == 'USD':
-                    price_m /= self.eur_usd  # пересчитываем в евро
-                else:
-                    price_m /= self.eur_rub  # вариант для прайса в рублях
-                price_p = price_m * st_len
+                st_len, price_m, price_p = self.get_data(3, item)
                 self.label_25.setText("%.2f" % price_m)
                 self.label_26.setText("%.2f" % price_p)
                 bins = BinPacking.pack(e_list, st_len)
@@ -344,12 +351,13 @@ class MyMainWindowClass(QWi.QMainWindow):
             }
         sum1 = 0
         plist = list(self.profiles)
-        # перебираем все профиля
+        # перебираем все профиля и удаляем крышки этого подтипа
         for art in plist:
             print("art:%s" % art)
             if art in dict_cov.values():
                 del self.profiles[art]
                 print("%s deleted" % art)
+        # перебираем все профиля
         for art in plist:
             if art in dict_cov.keys():
                 c_list = self.profiles[art]
@@ -361,20 +369,13 @@ class MyMainWindowClass(QWi.QMainWindow):
                                    "В прайсе отсутствует крышка %s" % item,
                                    QWi.QMessageBox.Ok)
                     return -1
-                st_len = price[5][item][1]
-                price_m = price[5][item][0]  # цена за 1 м в USD
-                if PRICE_CURRENCY == 'USD':
-                    price_m /= self.eur_usd  # пересчитываем в евро
-                else:
-                    price_m /= self.eur_rub  # вариант для прайса в рублях
-                price_p = price_m * st_len
-
+                st_len, price_m, price_p = self.get_data(5, item)
                 bins = BinPacking.pack(c_list, st_len)
                 print('Solution using', len(bins), 'bins')
                 sum1 += price_p * len(bins)
 
                 self.profiles[item] = c_list
-                if subtype == 1:  # first time
+                if subtype == 1:
                     self.label_33.setText(item)
                     self.label_34.setText("%.2f" % price_m)
                     self.label_32.setText("%.2f" % price_p)
@@ -384,35 +385,34 @@ class MyMainWindowClass(QWi.QMainWindow):
                     self.label_35.setText("%.2f" % price_m)
                     self.label_39.setText("%.2f" % price_p)
                     self.label_sum5_2.setText("%.2f" % sum1)
+        self.calc_pressings()
         return 0
 
-        # def calc_pressings(self):
-        # if 1:
-        # if 1:
-        # item = 'ТП-5005М'
-        # if item not in price[6].keys():
-        # mb = QWi.QMessageBox()
-        # mb.information(mb, 'Message',
-        #                                "В прайсе отсутствует крышка %s" % item,
-        #                                QWi.QMessageBox.Ok)
-        #                 return -1
-        #
-        #             self.label_33.setText(item)
-        #             st_len = price[5][item][1]
-        #             price_m = price[5][item][0]  # цена за 1 м в USD
-        #             if PRICE_CURRENCY == 'USD':
-        #                 price_m /= self.eur_usd  # пересчитываем в евро
-        #             else:
-        #                 price_m /= self.eur_rub  # вариант для прайса в рублях
-        #             price_p = price_m * st_len
-        #             self.label_34.setText("%.2f" % price_m)
-        #             self.label_32.setText("%.2f" % price_p)
-        #             bins = BinPacking.pack(c_list, st_len)
-        #             print('Solution using', len(bins), 'bins:')
-        #             sum1 += price_p * len(bins)
-        #             self.label_sum3.setText("%.2f" % sum1)
-        #             self.profiles[item] = c_list
-        #
+    def calc_pressings(self):
+        item = 'ТП-5005М'
+        self.profiles[item] = []
+        sum1 = 0
+        press_list = []
+        if item not in price[6].keys():
+            mb = QWi.QMessageBox()
+            mb.information(mb, 'Message',
+                           "В прайсе отсутствует прижим %s" % item,
+                           QWi.QMessageBox.Ok)
+            return -1
+        self.label_45.setText(item)
+        st_len, price_m, price_p = self.get_data(6, item)
+        self.label_42.setText("%.2f" % price_m)
+        self.label_43.setText("%.2f" % price_p)
+        # из длин стоечных и ригельных крышек составляем
+        # список требуемых прижимов
+        for k, prof_list in self.profiles.items():
+            if parser.gettype(k) == 5:
+                press_list += prof_list
+        bins = BinPacking.pack(press_list, st_len)
+        print('Solution using', len(bins), 'bins:')
+        sum1 += price_p * len(bins)
+        self.label_sum6.setText("%.2f" % sum1)
+        self.profiles[item] = press_list
 
 
 class MyDialog1Class(QWi.QDialog):
