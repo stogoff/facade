@@ -79,7 +79,8 @@ def parse_f(fn, t=1):  # t - назначение профиля
                     for cx in range(sh.ncols):
                         if name + " " in str(sh.cell_value(rx, cx)):
 
-                            if sh.cell_value(rx, 2) in ('п.м.', 'п.м', 'м.', 'м'):
+                            if sh.cell_value(rx, 2) in ('п.м.', 'п.м',
+                                                        'м.', 'м'):
                                 length = sh.cell_value(rx, 5)
                             else:
                                 length = 0

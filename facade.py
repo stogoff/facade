@@ -16,7 +16,7 @@ from PyQt5 import QtWidgets as QWi, uic
 
 import BinPacking
 import cbr
-import parser
+import price_parser
 
 
 PRICE_FILE = "../прайс_декабрь2014.xlsx"
@@ -53,15 +53,15 @@ class MyMainWindowClass(QWi.QMainWindow):
         # set current tab
         self.tabWidget.setCurrentIndex(0)
         # connecting:
-        self.edit_width.textChanged.connect(self.calc_area)
-        self.edit_height.textChanged.connect(self.calc_area)
-        self.edit_pillars.textChanged.connect(self.calc_fasteners)
+        self.edit_width.textChanged.connect(self.width_changed)
         self.edit_height.textChanged.connect(self.height_changed)
+        self.edit_pillars.textChanged.connect(self.calc_fasteners)
         self.actionOpen_pricelist.triggered.connect(self.custom_load)
         self.actionExit.triggered.connect(self.close)
         self.pushButton.clicked.connect(self.print_all)
         # globals:
         self.h = 0  # высота конструкции
+        self.w = 0
         self.np = 0  # число стоек
         self.fl = 0  # число перекрытий
         self.fh = {}  # высоты перекрытий
@@ -107,7 +107,7 @@ class MyMainWindowClass(QWi.QMainWindow):
     def load_price(self, fn):
         for i, f in ((1, 'pillars'), (2, 'headers'), (3, 'enhancers'),
                      (5, 'covers'), (6, 'pressings')):
-            price[i] = parser.parse_f(fn, i)
+            price[i] = price_parser.parse_f(fn, i)
             if i in (1, 2):
                 # Combobox:
                 cb = eval("self.comboBox_%d" % i)
@@ -129,19 +129,9 @@ class MyMainWindowClass(QWi.QMainWindow):
         return 0
 
     def calc_area(self):
-        try:
-            w = float(self.edit_width.text())
-        except ValueError:
-            w = 0
-            pass
-        try:
-            h = float(self.edit_height.text())
-        except ValueError:
-            h = 0
-
-        area = w * h
+        area = self.w * self.h
         self.label_area.setText("%5.3f" % area)
-        perimeter = (w + h) * 2
+        perimeter = (self.w + self.h) * 2
         self.label_per.setText("%5.3f" % perimeter)
         return 0
 
@@ -159,12 +149,18 @@ class MyMainWindowClass(QWi.QMainWindow):
             self.comboBox_2.setEnabled(False)
         return 0
 
+    def width_changed(self):
+        self.w = get_number_field(self.edit_width)
+        self.calc_area()
+        return 0
+
     def height_changed(self):
         self.h = get_number_field(self.edit_height)
         if self.h:
             self.comboBox_1.setEnabled(True)
         else:
             self.comboBox_1.setEnabled(False)
+        self.calc_area()
         if self.h > 3:
             self.fl, ok = MyDialog1Class.get_res(msg="Число перекрытий:")
         if not self.fl:  # нет перекрытий
@@ -175,6 +171,7 @@ class MyMainWindowClass(QWi.QMainWindow):
                 self.fh[f], ok = MyDialog2Class.get_res(msg=m)
                 if self.fh[f] > 1000:
                     self.fh[f] /= 1000
+        return 0
 
     def get_data(self, p_type, item):
         st_len = price[p_type][item][1]
@@ -245,6 +242,7 @@ class MyMainWindowClass(QWi.QMainWindow):
 
     def calc_headers(self, item):
         # очистим список профилей от других ригелей:
+        sw = 0
         pl = list(self.profiles)
         for i in pl:
             if i in price[2].keys():  # то есть это ригель
@@ -256,9 +254,16 @@ class MyMainWindowClass(QWi.QMainWindow):
         self.label_24.setText("%.2f" % price_p)
         h_list = []
         n_rows = int(get_number_field(self.edit_headers))
+        self.np = int(get_number_field(self.edit_pillars))
         for i in range(self.np - 1):
             m = "Расстояние между %d и %d стойками" % (i + 1, i + 2)
             lh, ok = MyDialog2Class.get_res(msg=m)
+            sw += lh
+            if sw > self.w:
+                mb = QWi.QMessageBox()
+                mb.information(mb, 'Error',
+                               "Превышена общая ширина", QWi.QMessageBox.Ok)
+                return -1
             if lh < st_len:
                 h_list += [lh]
             else:
@@ -267,6 +272,12 @@ class MyMainWindowClass(QWi.QMainWindow):
                     h_list += [st_len]
                     l -= st_len
                 h_list += [l]
+        if sw < self.w:
+            mb = QWi.QMessageBox()
+            mb.information(mb, 'Error',
+                           "Суммарное расстояние меньше общей ширины",
+                           QWi.QMessageBox.Ok)
+            return -1
         all_h_list = n_rows * h_list
         self.profiles[item] += all_h_list
         bins = BinPacking.pack(all_h_list, st_len)
@@ -406,7 +417,7 @@ class MyMainWindowClass(QWi.QMainWindow):
         # из длин стоечных и ригельных крышек составляем
         # список требуемых прижимов
         for k, prof_list in self.profiles.items():
-            if parser.gettype(k) == 5:
+            if price_parser.gettype(k) == 5:
                 press_list += prof_list
         bins = BinPacking.pack(press_list, st_len)
         print('Solution using', len(bins), 'bins:')

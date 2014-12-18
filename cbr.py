@@ -19,3 +19,8 @@ def get_usd_rate():
     txt_rate = tree.findall('./Valute[@ID="R01235"]/Value')[0].text
     rate = float(txt_rate.replace(',', '.'))
     return rate
+
+
+if __name__ == '__main__':
+    print(get_euro_rate())
+    print(get_usd_rate())
