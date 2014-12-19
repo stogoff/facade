@@ -47,7 +47,7 @@ def get_number_cell(cell):
     return res
 
 
-class MyMainWindowClass(QWi.QMainWindow):
+class FacadeMainClass(QWi.QMainWindow):
     def __init__(self, parent=None):
         QWi.QMainWindow.__init__(self, parent)
         uic.loadUi("main.ui", self)
@@ -94,7 +94,7 @@ class MyMainWindowClass(QWi.QMainWindow):
             print(k)
             print(v)
             s = self.calc_all()
-            self.label_40.setText("%.2f" % s)
+            self.label_total.setText("%.2f" % s)
 
     def calc_all(self):
         s, st_len, price_m, price_p = 0, 0, 0, 0
@@ -104,7 +104,7 @@ class MyMainWindowClass(QWi.QMainWindow):
                     st_len, price_m, price_p = self.get_data(p_type, k)
                 except KeyError:
                     pass
-            print(st_len, price_m, price_p)
+            # print(st_len, price_m, price_p)
             bins = bin_packing.pack(prof_list, st_len)
             s += price_p * len(bins)
         return s
@@ -500,6 +500,6 @@ class MyDialog2Class(QWi.QDialog):
 
 if __name__ == '__main__':
     app = QWi.QApplication(sys.argv)
-    myWindow = MyMainWindowClass(None)
+    myWindow = FacadeMainClass(None)
     myWindow.show()
     app.exec_()
