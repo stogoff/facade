@@ -14,9 +14,10 @@ import math
 
 from PyQt5 import QtWidgets as QWi, uic
 
-import BinPacking
-import cbr
 import price_parser
+
+import bin_packing
+import cbr
 
 
 PRICE_FILE = "../прайс_декабрь2014.xlsx"
@@ -50,19 +51,24 @@ class MyMainWindowClass(QWi.QMainWindow):
     def __init__(self, parent=None):
         QWi.QMainWindow.__init__(self, parent)
         uic.loadUi("main.ui", self)
-        # set current tab
-        self.tabWidget.setCurrentIndex(0)
         # connecting:
         self.edit_width.textChanged.connect(self.width_changed)
         self.edit_height.textChanged.connect(self.height_changed)
-        self.edit_pillars.textChanged.connect(self.calc_fasteners)
-        self.actionOpen_pricelist.triggered.connect(self.custom_load)
+        self.edit_pillars.textChanged.connect(self.pillars_changed)
+        self.edit_headers.textChanged.connect(self.headers_changed)
+        self.edit_fl.textChanged.connect(self.fl_changed)
+        self.edit_rate.textChanged.connect(self.rate_changed)
+
+        self.actionOpen_pricelist.triggered.connect(self.custom_price_load)
         self.actionExit.triggered.connect(self.close)
         self.pushButton.clicked.connect(self.print_all)
         # globals:
         self.h = 0  # высота конструкции
-        self.w = 0
+        self.w = 0  # ширина конструкции
+        self.nodes = 0  # число узлов
+        self.windowpanes = 0
         self.np = 0  # число стоек
+        self.n_rows = 0  # число рядов ригелей
         self.fl = 0  # число перекрытий
         self.fh = {}  # высоты перекрытий
         self.profiles = {}  # список профилей "артикул: список длин"
@@ -99,7 +105,7 @@ class MyMainWindowClass(QWi.QMainWindow):
                 except KeyError:
                     pass
             print(st_len, price_m, price_p)
-            bins = BinPacking.pack(prof_list, st_len)
+            bins = bin_packing.pack(prof_list, st_len)
             s += price_p * len(bins)
         return s
 
@@ -119,7 +125,7 @@ class MyMainWindowClass(QWi.QMainWindow):
                 cb.setEnabled(False)
         return 0
 
-    def custom_load(self):
+    def custom_price_load(self):
         dia = QWi.QFileDialog()
         file_name, flt = dia.getOpenFileName(self, 'Price list file',
                                              './', '*.xls *.xlsx')
@@ -135,26 +141,39 @@ class MyMainWindowClass(QWi.QMainWindow):
         self.label_per.setText("%5.3f" % perimeter)
         return 0
 
-    def calc_fasteners(self):
-        try:
-            p = int(self.edit_pillars.text())
-        except ValueError:
-            p = 0
-            # self.edit_pillars.
-        f = p * 2
-        self.edit_fasteners.setText("%d" % f)
-        if p:
+    def pillars_changed(self):
+        self.np = int(get_number_field(self.edit_pillars))
+        # крепеж верх/низ
+        f = self.np * 2
+        self.label_fasteners.setText("%d" % f)
+        # считаем кол-во крепежа к перекрытиям
+        if self.fl:
+            self.label_16.setEnabled(True)
+            self.label_fl_fast.setEnabled(True)
+            fl_fast = self.np * self.fl
+            self.label_fl_fast.setText("%d" % fl_fast)
+        return 0
+
+    def headers_changed(self):
+        self.n_rows = int(get_number_field(self.edit_headers))
+        self.nodes = self.n_rows * (self.np - 1)
+        self.label_nodes.setText("%d" % self.nodes)
+        self.windowpanes = (self.n_rows - 1) * (self.np - 1)
+        self.label_wp.setText("%d" % self.windowpanes)
+        if self.n_rows:
             self.comboBox_2.setEnabled(True)
         else:
             self.comboBox_2.setEnabled(False)
         return 0
 
     def width_changed(self):
+        # при изменении ширины пересчитываем площадь и периметр
         self.w = get_number_field(self.edit_width)
         self.calc_area()
         return 0
 
     def height_changed(self):
+        # при изменении высоты при необходимости запрашиваем число перекрытий
         self.h = get_number_field(self.edit_height)
         if self.h:
             self.comboBox_1.setEnabled(True)
@@ -162,7 +181,12 @@ class MyMainWindowClass(QWi.QMainWindow):
             self.comboBox_1.setEnabled(False)
         self.calc_area()
         if self.h > 3:
-            self.fl, ok = MyDialog1Class.get_res(msg="Число перекрытий:")
+            self.label_fl.setEnabled(True)
+            self.edit_fl.setEnabled(True)
+
+    def fl_changed(self):
+        self.fl = int(get_number_field(self.edit_fl))
+        # self.fl, ok = MyDialog1Class.get_res(msg="Число перекрытий:")
         if not self.fl:  # нет перекрытий
             pass
         else:
@@ -171,6 +195,9 @@ class MyMainWindowClass(QWi.QMainWindow):
                 self.fh[f], ok = MyDialog2Class.get_res(msg=m)
                 if self.fh[f] > 1000:
                     self.fh[f] /= 1000
+        return 0
+
+    def rate_changed(self):
         return 0
 
     def get_data(self, p_type, item):
@@ -188,7 +215,7 @@ class MyMainWindowClass(QWi.QMainWindow):
         pl = list(self.profiles)
         for i in pl:
             # если это стойка или усилитель:
-            if i in price[1].keys() or i in price[3].keys():
+            if price_parser.gettype(i) in (1, 3):
                 del self.profiles[i]
                 print("%s deleted" % i)
         self.profiles[item] = []
@@ -198,7 +225,8 @@ class MyMainWindowClass(QWi.QMainWindow):
             mb.question(mb, 'Message',
                         "Укажите число стоек", QWi.QMessageBox.Ok)
             self.comboBox_1.setCurrentIndex(0)
-            return
+            return -1
+
         st_len, price_m, price_p = self.get_data(1, item)
         self.label_20.setText("%.2f" % price_m)
         self.label_21.setText("%.2f" % price_p)
@@ -230,7 +258,7 @@ class MyMainWindowClass(QWi.QMainWindow):
             # теперь остаток от самого верхнего перекрытия до верха:
             plist += self.np * [self.h - sh]
             self.profiles[item] += plist
-            bins = BinPacking.pack(plist, st_len)
+            bins = bin_packing.pack(plist, st_len)
             print('Solution using', len(bins), 'bins:')
             # for bin in bins:
             # print (bin)
@@ -245,7 +273,7 @@ class MyMainWindowClass(QWi.QMainWindow):
         sw = 0
         pl = list(self.profiles)
         for i in pl:
-            if i in price[2].keys():  # то есть это ригель
+            if price_parser.gettype(i) == 2:  # то есть это ригель
                 del self.profiles[i]
                 print("%s deleted" % i)
         self.profiles[item] = []
@@ -253,16 +281,24 @@ class MyMainWindowClass(QWi.QMainWindow):
         self.label_23.setText("%.2f" % price_m)
         self.label_24.setText("%.2f" % price_p)
         h_list = []
-        n_rows = int(get_number_field(self.edit_headers))
+
+        if not self.n_rows:
+            mb = QWi.QMessageBox()
+            mb.question(mb, 'Message',
+                        "Укажите число рядов ригелей", QWi.QMessageBox.Ok)
+            self.comboBox_2.setCurrentIndex(0)
+            return -1
         self.np = int(get_number_field(self.edit_pillars))
         for i in range(self.np - 1):
             m = "Расстояние между %d и %d стойками" % (i + 1, i + 2)
             lh, ok = MyDialog2Class.get_res(msg=m)
             sw += lh
             if sw > self.w:
+                print(sw, self.w)
                 mb = QWi.QMessageBox()
                 mb.information(mb, 'Error',
                                "Превышена общая ширина", QWi.QMessageBox.Ok)
+                self.comboBox_2.setCurrentIndex(0)
                 return -1
             if lh < st_len:
                 h_list += [lh]
@@ -272,15 +308,17 @@ class MyMainWindowClass(QWi.QMainWindow):
                     h_list += [st_len]
                     l -= st_len
                 h_list += [l]
-        if sw < self.w:
+        if abs(sw - self.w) > 0.01:
+            print(sw, self.w)
             mb = QWi.QMessageBox()
             mb.information(mb, 'Error',
                            "Суммарное расстояние меньше общей ширины",
                            QWi.QMessageBox.Ok)
+            self.comboBox_2.setCurrentIndex(0)
             return -1
-        all_h_list = n_rows * h_list
+        all_h_list = self.n_rows * h_list
         self.profiles[item] += all_h_list
-        bins = BinPacking.pack(all_h_list, st_len)
+        bins = bin_packing.pack(all_h_list, st_len)
         print('Solution using', len(bins), 'bins:')
         # for bin in bins:
         # print (bin)
@@ -321,12 +359,13 @@ class MyMainWindowClass(QWi.QMainWindow):
                     mb.information(mb, 'Message',
                                    "В прайсе отсутствует усилитель %s" % item,
                                    QWi.QMessageBox.Ok)
+                    self.comboBox_1.setCurrentIndex(0)
                     return -1
                 self.label_29.setText(item)
                 st_len, price_m, price_p = self.get_data(3, item)
                 self.label_25.setText("%.2f" % price_m)
                 self.label_26.setText("%.2f" % price_p)
-                bins = BinPacking.pack(e_list, st_len)
+                bins = bin_packing.pack(e_list, st_len)
                 print('Solution using', len(bins), 'bins')
                 sum1 = price_p * len(bins)
                 self.label_sum3.setText("%.2f" % sum1)
@@ -379,9 +418,11 @@ class MyMainWindowClass(QWi.QMainWindow):
                     mb.information(mb, 'Message',
                                    "В прайсе отсутствует крышка %s" % item,
                                    QWi.QMessageBox.Ok)
+                    cb = eval("self.comboBox_%d" % subtype)
+                    cb.setCurrentIndex(0)
                     return -1
                 st_len, price_m, price_p = self.get_data(5, item)
-                bins = BinPacking.pack(c_list, st_len)
+                bins = bin_packing.pack(c_list, st_len)
                 print('Solution using', len(bins), 'bins')
                 sum1 += price_p * len(bins)
 
@@ -419,7 +460,7 @@ class MyMainWindowClass(QWi.QMainWindow):
         for k, prof_list in self.profiles.items():
             if price_parser.gettype(k) == 5:
                 press_list += prof_list
-        bins = BinPacking.pack(press_list, st_len)
+        bins = bin_packing.pack(press_list, st_len)
         print('Solution using', len(bins), 'bins:')
         sum1 += price_p * len(bins)
         self.label_sum6.setText("%.2f" % sum1)

@@ -1,5 +1,5 @@
 # from https://bitbucket.org/kent37/python-tutor-samples/
-# src/f657aeba5328/BinPacking.py
+# src/f657aeba5328/bin_packing.py
 
 """ Partition a list into sublists whose sums don't exceed a maximum
     using a First Fit Decreasing algorithm. See
