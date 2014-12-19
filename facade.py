@@ -484,10 +484,11 @@ class FacadeMainClass(QtWidgets.QMainWindow):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
+    app.setWindowIcon(QtGui.QIcon('icon.png'))
     desktop = app.desktop()
     splash = QtWidgets.QSplashScreen(QtGui.QPixmap("img.png"))
-    splash.showMessage("Loading... 0%",
-                       Qt.AlignHCenter | Qt.AlignBottom, Qt.black)
+    splash.showMessage("Loading... ",
+                       Qt.AlignHCenter | Qt.AlignBottom, Qt.white)
     splash.show()
     QtWidgets.qApp.processEvents()
     window = FacadeMainClass(None)
