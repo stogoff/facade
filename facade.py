@@ -12,10 +12,10 @@
 import sys
 import math
 
-from PyQt5 import QtWidgets as QWi, uic
+from PyQt5 import QtWidgets, QtGui, uic
+from PyQt5.QtCore import Qt, QRegExp
 
 import price_parser
-
 import bin_packing
 import cbr
 
@@ -25,39 +25,50 @@ PRICE_CURRENCY = 'USD'  # RUB or USD
 price = {}
 
 
-def get_number_field(field):
+def get_int_field(field):
+    if field.hasAcceptableInput():
+        res = int(field.text())
+        field.setStyleSheet("QLineEdit{background: white;}")
+        field.setToolTip(None)
+    else:
+        res = 0
+        field.setStyleSheet("QLineEdit{background: red;}")
+        field.setToolTip("Недопустимое значение!")
+    return res
+
+
+def get_float_field(field):
     try:
         res = float(field.text())
         field.setStyleSheet("QLineEdit{background: white;}")
-    except ValueError:
+        field.setToolTip(None)
+    except TypeError:
         res = 0
         field.setStyleSheet("QLineEdit{background: red;}")
-        field.setToolTip("Введите число!")
-        # QW.QMessageBox.question(self, 'Message',
-        # "Введите число в поле %s" % field.objectName(),
-        # QW.QMessageBox.Ok)
+        field.setToolTip("Недопустимое значение!")
     return res
 
 
-def get_number_cell(cell):
-    try:
-        res = float(cell.text())
-    except ValueError:
-        res = 0
-    return res
-
-
-class FacadeMainClass(QWi.QMainWindow):
+class FacadeMainClass(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
-        QWi.QMainWindow.__init__(self, parent)
+        QtWidgets.QMainWindow.__init__(self, parent)
         uic.loadUi("main.ui", self)
+        # validators:
+        re = QRegExp("\d{1,2}\.?\d+")
+        float_validator = QtGui.QRegExpValidator(re)
+        self.edit_width.setValidator(float_validator)
+        self.edit_height.setValidator(float_validator)
+        self.edit_door_w.setValidator(float_validator)
+        self.edit_pillars.setValidator(QtGui.QIntValidator(2, 100, self))
+        self.edit_headers.setValidator(QtGui.QIntValidator(2, 100, self))
+        self.edit_fl.setValidator(QtGui.QIntValidator(0, 20, self))
         # connecting:
         self.edit_width.textChanged.connect(self.width_changed)
         self.edit_height.textChanged.connect(self.height_changed)
         self.edit_pillars.textChanged.connect(self.pillars_changed)
         self.edit_headers.textChanged.connect(self.headers_changed)
         self.edit_fl.textChanged.connect(self.fl_changed)
-        self.edit_rate.textChanged.connect(self.rate_changed)
+        # self.edit_rate.textChanged.connect(self.rate_changed)
 
         self.actionOpen_pricelist.triggered.connect(self.custom_price_load)
         self.actionExit.triggered.connect(self.close)
@@ -87,7 +98,7 @@ class FacadeMainClass(QWi.QMainWindow):
             self.eur_rub = 999999
             self.label_rate.setText("1 EUR =")
             self.edit_rate.setText("???")
-        self.load_price(PRICE_FILE)
+        self.price_load(PRICE_FILE)
 
     def print_all(self):
         for k, v in self.profiles.items():
@@ -110,7 +121,7 @@ class FacadeMainClass(QWi.QMainWindow):
         return s
 
     # noinspection PyMethodMayBeStatic
-    def load_price(self, fn):
+    def price_load(self, fn):
         for i, f in ((1, 'pillars'), (2, 'headers'), (3, 'enhancers'),
                      (5, 'covers'), (6, 'pressings')):
             price[i] = price_parser.parse_f(fn, i)
@@ -126,12 +137,12 @@ class FacadeMainClass(QWi.QMainWindow):
         return 0
 
     def custom_price_load(self):
-        dia = QWi.QFileDialog()
+        dia = QtWidgets.QFileDialog()
         file_name, flt = dia.getOpenFileName(self, 'Price list file',
                                              './', '*.xls *.xlsx')
         if file_name:
             print(file_name)
-            self.load_price(file_name)
+            self.price_load(file_name)
         return 0
 
     def calc_area(self):
@@ -142,7 +153,7 @@ class FacadeMainClass(QWi.QMainWindow):
         return 0
 
     def pillars_changed(self):
-        self.np = int(get_number_field(self.edit_pillars))
+        self.np = int(get_int_field(self.edit_pillars))
         # крепеж верх/низ
         f = self.np * 2
         self.label_fasteners.setText("%d" % f)
@@ -155,7 +166,7 @@ class FacadeMainClass(QWi.QMainWindow):
         return 0
 
     def headers_changed(self):
-        self.n_rows = int(get_number_field(self.edit_headers))
+        self.n_rows = int(get_int_field(self.edit_headers))
         self.nodes = self.n_rows * (self.np - 1)
         self.label_nodes.setText("%d" % self.nodes)
         self.windowpanes = (self.n_rows - 1) * (self.np - 1)
@@ -168,13 +179,13 @@ class FacadeMainClass(QWi.QMainWindow):
 
     def width_changed(self):
         # при изменении ширины пересчитываем площадь и периметр
-        self.w = get_number_field(self.edit_width)
+        self.w = get_float_field(self.edit_width)
         self.calc_area()
         return 0
 
     def height_changed(self):
         # при изменении высоты при необходимости запрашиваем число перекрытий
-        self.h = get_number_field(self.edit_height)
+        self.h = get_float_field(self.edit_height)
         if self.h:
             self.comboBox_1.setEnabled(True)
         else:
@@ -185,19 +196,17 @@ class FacadeMainClass(QWi.QMainWindow):
             self.edit_fl.setEnabled(True)
 
     def fl_changed(self):
-        self.fl = int(get_number_field(self.edit_fl))
+        self.fl = int(get_int_field(self.edit_fl))
         # self.fl, ok = MyDialog1Class.get_res(msg="Число перекрытий:")
         if not self.fl:  # нет перекрытий
             pass
         else:
             for f in range(self.fl):
                 m = "Высота между %d и %d перекрытием" % (f, f + 1)
-                self.fh[f], ok = MyDialog2Class.get_res(msg=m)
+                d = QtWidgets.QInputDialog()
+                self.fh[f], ok = d.getDouble(d, "title", m, 1.0, 0.1, 100.0, 2)
                 if self.fh[f] > 1000:
                     self.fh[f] /= 1000
-        return 0
-
-    def rate_changed(self):
         return 0
 
     def get_data(self, p_type, item):
@@ -219,11 +228,11 @@ class FacadeMainClass(QWi.QMainWindow):
                 del self.profiles[i]
                 print("%s deleted" % i)
         self.profiles[item] = []
-        self.np = int(get_number_field(self.edit_pillars))  # число стоек
+        self.np = int(get_int_field(self.edit_pillars))  # число стоек
         if not self.np:
-            mb = QWi.QMessageBox()
-            mb.question(mb, 'Message',
-                        "Укажите число стоек", QWi.QMessageBox.Ok)
+            mb = QtWidgets.QMessageBox()
+            mb.warning(mb, 'Message', "Укажите число стоек",
+                       QtWidgets.QMessageBox.Ok)
             self.comboBox_1.setCurrentIndex(0)
             return -1
 
@@ -283,21 +292,28 @@ class FacadeMainClass(QWi.QMainWindow):
         h_list = []
 
         if not self.n_rows:
-            mb = QWi.QMessageBox()
-            mb.question(mb, 'Message',
-                        "Укажите число рядов ригелей", QWi.QMessageBox.Ok)
+            mb = QtWidgets.QMessageBox()
+            mb.warning(mb, 'Error', "Укажите число рядов ригелей",
+                       QtWidgets.QMessageBox.Ok)
             self.comboBox_2.setCurrentIndex(0)
             return -1
-        self.np = int(get_number_field(self.edit_pillars))
+        self.np = int(get_int_field(self.edit_pillars))
         for i in range(self.np - 1):
             m = "Расстояние между %d и %d стойками" % (i + 1, i + 2)
-            lh, ok = MyDialog2Class.get_res(msg=m)
-            sw += lh
+            d = QtWidgets.QInputDialog()
+            lh, ok = d.getDouble(d, "title", m, 1.0, 0.1, 100.0, 2)
+            # value=1.0, min=0.1, max=100.0, decimals=2)
+            if ok:
+                sw += lh
+            else:
+                self.comboBox_2.setCurrentIndex(0)
+                return -1
+
             if sw > self.w:
                 print(sw, self.w)
-                mb = QWi.QMessageBox()
-                mb.information(mb, 'Error',
-                               "Превышена общая ширина", QWi.QMessageBox.Ok)
+                mb = QtWidgets.QMessageBox()
+                mb.warning(mb, 'Error', "Превышена общая ширина",
+                           QtWidgets.QMessageBox.Ok)
                 self.comboBox_2.setCurrentIndex(0)
                 return -1
             if lh < st_len:
@@ -310,10 +326,9 @@ class FacadeMainClass(QWi.QMainWindow):
                 h_list += [l]
         if abs(sw - self.w) > 0.01:
             print(sw, self.w)
-            mb = QWi.QMessageBox()
-            mb.information(mb, 'Error',
-                           "Суммарное расстояние меньше общей ширины",
-                           QWi.QMessageBox.Ok)
+            mb = QtWidgets.QMessageBox()
+            mb.warning(mb, 'Error', "Суммарное расстояние меньше общей ширины",
+                       QtWidgets.QMessageBox.Ok)
             self.comboBox_2.setCurrentIndex(0)
             return -1
         all_h_list = self.n_rows * h_list
@@ -355,10 +370,10 @@ class FacadeMainClass(QWi.QMainWindow):
                 e_list = e250 * [0.25] + e800 * [0.8]
                 item = dict_enh[art]
                 if item not in price[3].keys():
-                    mb = QWi.QMessageBox()
-                    mb.information(mb, 'Message',
+                    mb = QtWidgets.QMessageBox()
+                    mb.warning(mb, 'Message',
                                    "В прайсе отсутствует усилитель %s" % item,
-                                   QWi.QMessageBox.Ok)
+                                   QtWidgets.QMessageBox.Ok)
                     self.comboBox_1.setCurrentIndex(0)
                     return -1
                 self.label_29.setText(item)
@@ -414,10 +429,10 @@ class FacadeMainClass(QWi.QMainWindow):
                 item = dict_cov[art]
                 print("added %s" % item)
                 if item not in price[5].keys():
-                    mb = QWi.QMessageBox()
-                    mb.information(mb, 'Message',
+                    mb = QtWidgets.QMessageBox()
+                    mb.warning(mb, 'Message',
                                    "В прайсе отсутствует крышка %s" % item,
-                                   QWi.QMessageBox.Ok)
+                                   QtWidgets.QMessageBox.Ok)
                     cb = eval("self.comboBox_%d" % subtype)
                     cb.setCurrentIndex(0)
                     return -1
@@ -446,10 +461,10 @@ class FacadeMainClass(QWi.QMainWindow):
         sum1 = 0
         press_list = []
         if item not in price[6].keys():
-            mb = QWi.QMessageBox()
-            mb.information(mb, 'Message',
+            mb = QtWidgets.QMessageBox()
+            mb.warning(mb, 'Message',
                            "В прайсе отсутствует прижим %s" % item,
-                           QWi.QMessageBox.Ok)
+                           QtWidgets.QMessageBox.Ok)
             return -1
         self.label_45.setText(item)
         st_len, price_m, price_p = self.get_data(6, item)
@@ -467,39 +482,21 @@ class FacadeMainClass(QWi.QMainWindow):
         self.profiles[item] = press_list
 
 
-class MyDialog1Class(QWi.QDialog):
-    def __init__(self, parent=None):
-        QWi.QDialog.__init__(self, parent)
-        uic.loadUi("dialog1.ui", self)
-
-    @staticmethod
-    def get_res(parent=None, msg=""):
-        dialog = MyDialog1Class(parent)
-        if msg:
-            dialog.label.setText(msg)
-        result = dialog.exec_()
-        res = dialog.spinBox.value()
-        return res, result == QWi.QDialog.Accepted
-
-
-class MyDialog2Class(QWi.QDialog):
-    def __init__(self, parent=None):
-        QWi.QDialog.__init__(self, parent)
-        uic.loadUi("dialog2.ui", self)
-
-    @staticmethod
-    def get_res(parent=None, msg=""):
-        dialog = MyDialog2Class(parent)
-        if msg:
-            dialog.label.setText(msg)
-        dialog.lineEdit.setFocus()
-        result = dialog.exec_()
-        res = dialog.lineEdit.text()
-        return float(res), result == QWi.QDialog.Accepted
-
-
 if __name__ == '__main__':
-    app = QWi.QApplication(sys.argv)
-    myWindow = FacadeMainClass(None)
-    myWindow.show()
-    app.exec_()
+    app = QtWidgets.QApplication(sys.argv)
+    desktop = app.desktop()
+    splash = QtWidgets.QSplashScreen(QtGui.QPixmap("img.png"))
+    splash.showMessage("Loading... 0%",
+                       Qt.AlignHCenter | Qt.AlignBottom, Qt.black)
+    splash.show()
+    QtWidgets.qApp.processEvents()
+    window = FacadeMainClass(None)
+    if desktop.width() > 2000:
+        x = (1680 - window.width()) // 2
+    else:
+        x = (desktop.width() - window.width()) // 2
+    y = (desktop.height() - window.height()) // 2
+    window.move(x, y)
+    window.show()
+    splash.finish(window)
+    sys.exit(app.exec_())

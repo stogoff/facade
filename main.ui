@@ -33,6 +33,9 @@
      </item>
      <item>
       <widget class="QLineEdit" name="edit_rate">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="font">
         <font>
          <pointsize>11</pointsize>
@@ -382,7 +385,7 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>11</x>
@@ -817,7 +820,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>12</x>
@@ -928,12 +931,12 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="edit_pillars_2"/>
+        <widget class="QLineEdit" name="edit_door_w"/>
        </item>
       </layout>
      </item>
      <item row="0" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0,0">
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
@@ -1065,7 +1068,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -1085,7 +1088,7 @@
      <item>
       <widget class="QLabel" name="label_total">
        <property name="text">
-        <string>TextLabel</string>
+        <string>0</string>
        </property>
       </widget>
      </item>
@@ -1107,64 +1110,10 @@
    <zorder>layoutWidget</zorder>
    <zorder>layoutWidget</zorder>
    <zorder>layoutWidget</zorder>
-   <zorder>layoutWidget</zorder>
-   <zorder>layoutWidget_2</zorder>
-   <zorder>layoutWidget_3</zorder>
-   <zorder>splitter_2</zorder>
-   <zorder>splitter_3</zorder>
-   <zorder>layoutWidget_4</zorder>
-   <zorder>layoutWidget_5</zorder>
-   <zorder>layoutWidget_7</zorder>
-   <zorder>pushButton</zorder>
-   <zorder>label_total</zorder>
-   <zorder>comboBox_1</zorder>
-   <zorder>label_10</zorder>
-   <zorder>label_20</zorder>
-   <zorder>label_19</zorder>
-   <zorder>label_21</zorder>
-   <zorder>splitter_4</zorder>
-   <zorder>comboBox_2</zorder>
-   <zorder>label_23</zorder>
-   <zorder>label_24</zorder>
-   <zorder>splitter</zorder>
-   <zorder>splitter_5</zorder>
-   <zorder>label_26</zorder>
-   <zorder>label_25</zorder>
-   <zorder>label_18</zorder>
-   <zorder>label_22</zorder>
-   <zorder>label_27</zorder>
-   <zorder>label_28</zorder>
-   <zorder>label_47</zorder>
-   <zorder>label_48</zorder>
-   <zorder>label_34</zorder>
-   <zorder>label_32</zorder>
-   <zorder>splitter_7</zorder>
-   <zorder>label_35</zorder>
-   <zorder>label_39</zorder>
-   <zorder>splitter_6</zorder>
-   <zorder>label_49</zorder>
-   <zorder>label_50</zorder>
-   <zorder>label_sum6</zorder>
-   <zorder>label_43</zorder>
-   <zorder>label_42</zorder>
-   <zorder>label_51</zorder>
    <zorder>label_52</zorder>
    <zorder>label_53</zorder>
    <zorder>label_54</zorder>
    <zorder>label_55</zorder>
-   <zorder>label_sum4</zorder>
-   <zorder>label_29</zorder>
-   <zorder>label_33</zorder>
-   <zorder>label_36</zorder>
-   <zorder>label_45</zorder>
-   <zorder>label_30</zorder>
-   <zorder>label_31</zorder>
-   <zorder>label_37</zorder>
-   <zorder>label_wp</zorder>
-   <zorder>spinBox_fl</zorder>
-   <zorder>label_fl</zorder>
-   <zorder>label_17</zorder>
-   <zorder>label_sum2_7</zorder>
    <zorder>label_sum2_2</zorder>
    <zorder>label_38</zorder>
    <zorder>label_41</zorder>
@@ -1218,7 +1167,7 @@
   <tabstop>edit_fl</tabstop>
   <tabstop>edit_pillars</tabstop>
   <tabstop>edit_headers</tabstop>
-  <tabstop>edit_pillars_2</tabstop>
+  <tabstop>edit_door_w</tabstop>
   <tabstop>comboBox_1</tabstop>
   <tabstop>comboBox_2</tabstop>
   <tabstop>pushButton</tabstop>
