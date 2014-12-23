@@ -62,6 +62,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.edit_pillars.setValidator(QtGui.QIntValidator(2, 100, self))
         self.edit_headers.setValidator(QtGui.QIntValidator(2, 100, self))
         self.edit_fl.setValidator(QtGui.QIntValidator(0, 20, self))
+
         # connecting:
         self.edit_width.textChanged.connect(self.width_changed)
         self.edit_height.textChanged.connect(self.height_changed)
@@ -123,7 +124,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
     # noinspection PyMethodMayBeStatic
     def price_load(self, fn):
         for i, f in ((1, 'pillars'), (2, 'headers'), (3, 'enhancers'),
-                     (5, 'covers'), (6, 'pressings')):
+                     (4, 'dies'), (5, 'covers'), (6, 'pressings')):
             price[i] = price_parser.parse_f(fn, i)
             if i in (1, 2):
                 # Combobox:
@@ -275,6 +276,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
             self.label_sum1.setText("%.2f" % sum1)
         self.calc_enhancers()
         self.calc_covers(1)
+        self.calc_dies()
         return 0
 
     def calc_headers(self, item):
@@ -340,6 +342,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         sum1 = price_p * len(bins)
         self.label_sum2.setText("%.2f" % sum1)
         self.calc_covers(2)
+        self.calc_dies()
         return 0
 
     def calc_enhancers(self):
@@ -385,6 +388,22 @@ class FacadeMainClass(QtWidgets.QMainWindow):
                 sum1 = price_p * len(bins)
                 self.label_sum3.setText("%.2f" % sum1)
                 self.profiles[item] = e_list
+        return 0
+
+    def calc_dies(self):  # сухари
+        item = 'ТП-5004'
+        self.profiles[item] = []
+        length = 0.084  # !!! CHECK it!!!
+        self.label_30.setText(item)
+        st_len, price_m, price_p = self.get_data(4, item)
+        self.label_49.setText("%.2f" % price_m)
+        self.label_50.setText("%.2f" % price_p)
+        die_list = self.nodes * [length]
+        bins = bin_packing.pack(die_list, st_len)
+        print('Solution using', len(bins), 'bins:')
+        sum1 = price_p * len(bins)
+        self.label_sum4.setText("%.2f" % sum1)
+        self.profiles[item] = die_list
         return 0
 
     def calc_covers(self, subtype):
@@ -480,7 +499,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         sum1 += price_p * len(bins)
         self.label_sum6.setText("%.2f" % sum1)
         self.profiles[item] = press_list
-
+        return 0
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
