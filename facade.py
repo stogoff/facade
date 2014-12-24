@@ -8,6 +8,9 @@
 # Python3   https://www.python.org/downloads/
 # PyQt5     http://www.riverbankcomputing.com/software/pyqt/download5
 # xlrd      https://pypi.python.org/pypi/xlrd
+# for windows:
+# http://www.lfd.uci.edu/~gohlke/pythonlibs/girnt9fk/cx_Freeze-4.3.3.win-amd64-py3.4.exe
+
 
 import sys
 import math
@@ -398,7 +401,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         st_len, price_m, price_p = self.get_data(4, item)
         self.label_49.setText("%.2f" % price_m)
         self.label_50.setText("%.2f" % price_p)
-        die_list = self.nodes * [length]
+        die_list = self.nodes * 2 * [length]
         bins = bin_packing.pack(die_list, st_len)
         print('Solution using', len(bins), 'bins:')
         sum1 = price_p * len(bins)

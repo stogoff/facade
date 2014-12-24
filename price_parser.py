@@ -87,7 +87,7 @@ def parse_f(fn, t=1):  # t - назначение профиля
                             price = sh.cell_value(rx, 7) * K * NDS
                             res[name] = [price, length, 0]
                             cnt += 1
-    print("import %d goods" % len(res))
+    print("import %d goods of type %d" % (len(res), t))
     return res
 
 
