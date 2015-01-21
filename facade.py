@@ -81,7 +81,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.h = 0  # высота конструкции
         self.w = 0  # ширина конструкции
         self.nodes = 0  # число узлов
-        self.windowpanes = 0
+        self.windowpanes = 0  # число стеклопакетов
         self.np = 0  # число стоек
         self.n_rows = 0  # число рядов ригелей
         self.fl = 0  # число перекрытий
@@ -127,7 +127,9 @@ class FacadeMainClass(QtWidgets.QMainWindow):
     # noinspection PyMethodMayBeStatic
     def price_load(self, fn):
         for i, f in ((1, 'pillars'), (2, 'headers'), (3, 'enhancers'),
-                     (4, 'dies'), (5, 'covers'), (6, 'pressings')):
+                     (4, 'dies'), (5, 'covers'), (6, 'pressings'),
+                     (7, 'adapters'), (8, 'rubber'), (9, 'pvc'),
+                     (10, 'pads')):
             price[i] = price_parser.parse_f(fn, i)
             if i in (1, 2):
                 # Combobox:
@@ -280,6 +282,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.calc_enhancers()
         self.calc_covers(1)
         self.calc_dies()
+        self.calc_pads()
         return 0
 
     def calc_headers(self, item):
@@ -393,7 +396,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
                 self.profiles[item] = e_list
         return 0
 
-    def calc_dies(self):  # сухари
+    def calc_dies(self):  # сухари #4
         item = 'ТП-5004'
         self.profiles[item] = []
         length = 0.084  # !!! CHECK it!!!
@@ -409,7 +412,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.profiles[item] = die_list
         return 0
 
-    def calc_covers(self, subtype):
+    def calc_covers(self, subtype):  # 5
         if subtype == 1:
             dict_cov = {
                 'ТП-50310': 'ТП-5015М',  # pillars
@@ -477,7 +480,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.calc_pressings()
         return 0
 
-    def calc_pressings(self):
+    def calc_pressings(self):  # 6
         item = 'ТП-5005М'
         self.profiles[item] = []
         sum1 = 0
@@ -503,6 +506,43 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.label_sum6.setText("%.2f" % sum1)
         self.profiles[item] = press_list
         return 0
+
+    def calc_adapters(self):  # 7
+        return 0
+
+    def calc_rubber(self):  # 8
+        return 0
+
+    def calc_pvc(self):  # 9
+        item = 'ТПУ-010-04'
+        self.profiles[item] = []
+        self.label_62.setText(item)
+        st_len, price_m, price_p = self.get_data(9, item)
+        self.label_58.setText("%.2f" % price_m)
+        self.label_59.setText("%.2f" % price_p)
+        sum_length = self.h * self.np + self.w * self.n_rows
+        n = math.ceil(sum_length / st_len)
+        sum1 = price_p * n
+        self.label_sum9.setText("%.2f" % sum1)
+        self.profiles[item] = n * [st_len]
+        return 0
+
+    def calc_pads(self):  # 10
+        item = 'ТП-5095'
+        self.profiles[item] = []
+        length = 0.1
+        self.label_63.setText(item)
+        st_len, price_m, price_p = self.get_data(10, item)
+        self.label_56.setText("%.2f" % price_m)
+        self.label_57.setText("%.2f" % price_p)
+        pad_list = self.windowpanes * 2 * [length]
+        bins = bin_packing.pack(pad_list, st_len / 2)  # окр. до половины хлыста
+        print('Solution using', len(bins), 'bins:')
+        sum1 = price_p * len(bins)
+        self.label_sum10.setText("%.2f" % sum1)
+        self.profiles[item] = pad_list
+        return 0
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
