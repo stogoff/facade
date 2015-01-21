@@ -109,7 +109,7 @@
      <string>подкладка</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_sum2_2">
+   <widget class="QLabel" name="label_sum8">
     <property name="geometry">
      <rect>
       <x>198</x>
@@ -162,7 +162,7 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_sum1_2">
+   <widget class="QLabel" name="label_sum7">
     <property name="geometry">
      <rect>
       <x>106</x>
@@ -199,7 +199,7 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_sum3_3">
+   <widget class="QLabel" name="label_sum9">
     <property name="geometry">
      <rect>
       <x>290</x>
@@ -220,7 +220,7 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_sum3_4">
+   <widget class="QLabel" name="label_sum10">
     <property name="geometry">
      <rect>
       <x>382</x>
@@ -825,32 +825,11 @@
      <rect>
       <x>12</x>
       <y>10</y>
-      <width>731</width>
+      <width>651</width>
       <height>159</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
-     <item row="0" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <item>
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Высота:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="edit_height"/>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>м</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
      <item row="2" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
@@ -936,7 +915,7 @@
       </layout>
      </item>
      <item row="0" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0,0">
+      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,1,0">
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
@@ -950,7 +929,7 @@
        <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>м</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;м&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -1035,7 +1014,7 @@
        <item>
         <widget class="QLabel" name="label_7">
          <property name="text">
-          <string>кв.м</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;м&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -1059,6 +1038,27 @@
        </item>
        <item>
         <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>м</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Высота:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="edit_height"/>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_3">
          <property name="text">
           <string>м</string>
          </property>
@@ -1114,13 +1114,13 @@
    <zorder>label_53</zorder>
    <zorder>label_54</zorder>
    <zorder>label_55</zorder>
-   <zorder>label_sum2_2</zorder>
+   <zorder>label_sum8</zorder>
    <zorder>label_38</zorder>
    <zorder>label_41</zorder>
-   <zorder>label_sum1_2</zorder>
+   <zorder>label_sum7</zorder>
    <zorder>label_56</zorder>
-   <zorder>label_sum3_3</zorder>
-   <zorder>label_sum3_4</zorder>
+   <zorder>label_sum9</zorder>
+   <zorder>label_sum10</zorder>
    <zorder>label_44</zorder>
    <zorder>label_57</zorder>
    <zorder>label_46</zorder>
