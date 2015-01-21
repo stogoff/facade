@@ -30,7 +30,7 @@ profile_ids = {
     7:  # адаптер
         ['ТПУ-032-26', ],  # 'ТП-50353', 'ТП-50355', 'ТП-50356', 'ТП-50359М'],
     8:  # резина
-        ['ТПУ-6001', 'ТПУ-6002', 'ТПУ-6005', ],
+        ['ТПУ-6001', 'ТПУ-6002', 'ТПУ-6005', 'ТПУ-007ММ', ],
     9:  # ПВХ
         ['ТПУ-010-04', ],
     10:  # подкладка
@@ -56,7 +56,7 @@ def parse_f(fn, t=1):  # t - назначение профиля
     book = xlrd.open_workbook(fn)
     # print ("The number of worksheets is", book.nsheets)
     # print ("Worksheet name(s):", book.sheet_names())
-    if t < 8 or t > 9:  # металл
+    if t < 7 or t > 9:  # металл
         sh = book.sheet_by_index(WS_NUM - 1)  # так как с 0
         for rx in range(sh.nrows):
             name = sh.cell_value(rx, col(COL_NAME))
@@ -72,8 +72,7 @@ def parse_f(fn, t=1):  # t - назначение профиля
                 sh = book.sheet_by_index(sh_n)
                 for rx in range(sh.nrows):
                     for cx in range(sh.ncols):
-                        if name + " " in str(sh.cell_value(rx, cx)):
-
+                        if name in str(sh.cell_value(rx, cx)):
                             if sh.cell_value(rx, 2) in ('п.м.', 'п.м',
                                                         'м.', 'м'):
                                 length = sh.cell_value(rx, 5)

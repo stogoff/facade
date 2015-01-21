@@ -80,6 +80,8 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         # globals:
         self.h = 0  # высота конструкции
         self.w = 0  # ширина конструкции
+        self.area = 0
+        self.perimeter = 0
         self.nodes = 0  # число узлов
         self.windowpanes = 0  # число стеклопакетов
         self.np = 0  # число стоек
@@ -114,14 +116,21 @@ class FacadeMainClass(QtWidgets.QMainWindow):
     def calc_all(self):
         s, st_len, price_m, price_p = 0, 0, 0, 0
         for k, prof_list in self.profiles.items():
-            for p_type in range(11):
-                try:
-                    st_len, price_m, price_p = self.get_data(p_type, k)
-                except KeyError:
-                    pass
-            # print(st_len, price_m, price_p)
-            bins = bin_packing.pack(prof_list, st_len)
-            s += price_p * len(bins)
+            p_type = price_parser.gettype(k)
+            st_len, price_m, price_p = self.get_data(p_type, k)
+            if p_type == 10:
+                # окр. до половины хлыста
+                bins = bin_packing.pack(prof_list, st_len / 2)
+                s += price_p * len(bins) / 2
+            else:
+                bins = bin_packing.pack(prof_list, st_len)
+                s += price_p * len(bins)
+            print(price_p * len(bins))
+        s += get_float_field(self.label_sum7)
+        s += get_float_field(self.label_sum8)
+        s += get_float_field(self.label_sum8_2)
+        s += get_float_field(self.label_sum8_3)
+        s += get_float_field(self.label_sum8_4)
         return s
 
     # noinspection PyMethodMayBeStatic
@@ -152,10 +161,10 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         return 0
 
     def calc_area(self):
-        area = self.w * self.h
-        self.label_area.setText("%5.3f" % area)
-        perimeter = (self.w + self.h) * 2
-        self.label_per.setText("%5.3f" % perimeter)
+        self.area = self.w * self.h
+        self.label_area.setText("%5.3f" % self.area)
+        self.perimeter = (self.w + self.h) * 2
+        self.label_per.setText("%5.3f" % self.perimeter)
         return 0
 
     def pillars_changed(self):
@@ -349,6 +358,9 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.label_sum2.setText("%.2f" % sum1)
         self.calc_covers(2)
         self.calc_dies()
+        self.calc_adapters()
+        self.calc_rubber()
+        self.calc_pvc()
         return 0
 
     def calc_enhancers(self):
@@ -508,9 +520,48 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         return 0
 
     def calc_adapters(self):  # 7
+        item = 'ТПУ-032-26'  # по периметру
+        self.label_61.setText(item)
+        st_len, price_m, price_p = self.get_data(7, item)
+        self.label_41.setText("%.2f" % price_m)
+        length = self.perimeter
+        sum1 = price_m * length
+        self.label_sum7.setText("%.2f" % sum1)
         return 0
 
     def calc_rubber(self):  # 8
+        item = 'ТПУ-6002'  # по длине стоек *2
+        self.label_60.setText(item)
+        st_len, price_m, price_p = self.get_data(8, item)
+        self.label_46.setText("%.2f" % price_m)
+        length = self.h * self.np * 2
+        sum1 = price_m * length
+        self.label_sum8.setText("%.2f" % sum1)
+
+        item = 'ТПУ-6001'  # по длине ригелей *2
+        self.label_64.setText(item)
+        st_len, price_m, price_p = self.get_data(8, item)
+        self.label_65.setText("%.2f" % price_m)
+        length = self.w * self.n_rows * 2
+        sum1 = price_m * length
+        self.label_sum8_2.setText("%.2f" % sum1)
+
+        item = 'ТПУ-6005'  # в узлах по 110 мм
+        self.label_70.setText(item)
+        st_len, price_m, price_p = self.get_data(8, item)
+        self.label_69.setText("%.2f" % price_m)
+        length = self.nodes * 0.11
+        sum1 = price_m * length
+        self.label_sum8_3.setText("%.2f" % sum1)
+
+        item = 'ТПУ-007ММ'
+        self.label_68.setText(item)
+        st_len, price_m, price_p = self.get_data(8, item)
+        self.label_75.setText("%.2f" % price_m)
+        length = self.h * self.np * 2 + self.w * self.n_rows * 2
+        sum1 = price_m * length
+        self.label_sum8_4.setText("%.2f" % sum1)
+
         return 0
 
     def calc_pvc(self):  # 9
@@ -538,7 +589,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         pad_list = self.windowpanes * 2 * [length]
         bins = bin_packing.pack(pad_list, st_len / 2)  # окр. до половины хлыста
         print('Solution using', len(bins), 'bins:')
-        sum1 = price_p * len(bins)
+        sum1 = price_p * len(bins) / 2
         self.label_sum10.setText("%.2f" % sum1)
         self.profiles[item] = pad_list
         return 0
