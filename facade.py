@@ -14,6 +14,7 @@
 
 import sys
 import math
+import configparser
 
 from PyQt5 import QtWidgets, QtGui, uic
 from PyQt5.QtCore import Qt, QRegExp
@@ -56,6 +57,23 @@ class FacadeMainClass(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent)
         uic.loadUi("main.ui", self)
+
+        # globals:
+        self.h = 0  # высота конструкции
+        self.w = 0  # ширина конструкции
+        self.area = 0
+        self.perimeter = 0
+        self.nodes = 0  # число узлов
+        self.windowpanes = 0  # число стеклопакетов
+        self.np = 0  # число стоек
+        self.n_rows = 0  # число рядов ригелей
+        self.fl = 0  # число перекрытий
+        self.fh = {}  # высоты перекрытий
+        self.profiles = {}  # список профилей "артикул: список длин"
+        self.eur_rub = 0
+        self.eur_usd = 0
+        self.usd_rub = 0
+
         # validators:
         re = QRegExp("\d{1,2}\.?\d+")
         float_validator = QtGui.QRegExpValidator(re)
@@ -77,21 +95,26 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.actionOpen_pricelist.triggered.connect(self.custom_price_load)
         self.actionExit.triggered.connect(self.close)
         self.pushButton.clicked.connect(self.print_all)
-        # globals:
-        self.h = 0  # высота конструкции
-        self.w = 0  # ширина конструкции
-        self.area = 0
-        self.perimeter = 0
-        self.nodes = 0  # число узлов
-        self.windowpanes = 0  # число стеклопакетов
-        self.np = 0  # число стоек
-        self.n_rows = 0  # число рядов ригелей
-        self.fl = 0  # число перекрытий
-        self.fh = {}  # высоты перекрытий
-        self.profiles = {}  # список профилей "артикул: список длин"
-        self.eur_rub = 0
-        self.eur_usd = 0
-        self.usd_rub = 0
+
+        # reading config
+        config = configparser.ConfigParser()
+        config.read('main.ini')
+        if 'h' in config['DEFAULT']:
+            self.h = float(config['DEFAULT']['h'])
+            self.edit_height.setText("%.3f" % self.h)
+        if 'w' in config['DEFAULT']:
+            self.w = float(config['DEFAULT']['w'])
+            self.edit_width.setText("%.3f" % self.w)
+        if 'np' in config['DEFAULT']:
+            self.np = int(config['DEFAULT']['np'])
+            self.edit_pillars.setText("%d" % self.np)
+        if 'n_rows' in config['DEFAULT']:
+            self.n_rows = int(config['DEFAULT']['n_rows'])
+            self.edit_headers.setText("%d" % self.n_rows)
+        self.width_changed()
+        self.height_changed()
+        self.pillars_changed()
+        self.headers_changed()
         # currency
         # noinspection PyBroadException
         try:
@@ -125,7 +148,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
             else:
                 bins = bin_packing.pack(prof_list, st_len)
                 s += price_p * len(bins)
-            print(price_p * len(bins))
+                # print(price_p * len(bins))
         s += get_float_field(self.label_sum7)
         s += get_float_field(self.label_sum8)
         s += get_float_field(self.label_sum8_2)
@@ -148,7 +171,8 @@ class FacadeMainClass(QtWidgets.QMainWindow):
                 for name in sorted(price[i]):
                     cb.addItem(name)
                 cb.activated[str].connect(eval("self.calc_%s" % f))
-                cb.setEnabled(False)
+                if not self.h or not self.w or not self.np or not self.n_rows:
+                    cb.setEnabled(False)
         return 0
 
     def custom_price_load(self):
@@ -213,15 +237,14 @@ class FacadeMainClass(QtWidgets.QMainWindow):
     def fl_changed(self):
         self.fl = int(get_int_field(self.edit_fl))
         # self.fl, ok = MyDialog1Class.get_res(msg="Число перекрытий:")
-        if not self.fl:  # нет перекрытий
-            pass
-        else:
+        if self.fl:  # нет перекрытий
             for f in range(self.fl):
                 m = "Высота между %d и %d перекрытием" % (f, f + 1)
                 d = QtWidgets.QInputDialog()
                 self.fh[f], ok = d.getDouble(d, "title", m, 1.0, 0.1, 100.0, 2)
                 if self.fh[f] > 1000:
                     self.fh[f] /= 1000
+            self.pillars_changed()
         return 0
 
     def get_data(self, p_type, item):
@@ -324,6 +347,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
                 sw += lh
             else:
                 self.comboBox_2.setCurrentIndex(0)
+
                 return -1
 
             if sw > self.w:
