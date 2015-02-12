@@ -1,6 +1,6 @@
 import xlrd
 
-WS_NUM = 2  # порядковый номер листа в книге xls
+WS_NUM = 3  # порядковый номер листа в книге xls
 COL_NAME = 'B'  # столбец "наименование"
 COL_PRICE = 'M'  # столбец "цена"
 COL_LEN = 'F'  # столбец "длина"
@@ -87,4 +87,4 @@ def parse_f(fn, t=1):  # t - назначение профиля
 
 if __name__ == '__main__':
     for i in (range(1, 11)):
-        print(i, parse_f("../прайс_декабрь2014.xlsx", i))
+        print(i, parse_f("../прайс_2015_январь.xlsx", i))

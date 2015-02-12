@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # facade.py
 # Программа расчета себестоимости фасадных конструкций
 # Date: 26/11/2014
@@ -24,7 +24,15 @@ import bin_packing
 import cbr
 
 
-PRICE_FILE = "../прайс_декабрь2014.xlsx"
+p_samorez = 0.84
+p_bolt = 60.0
+p_samorez_okr = 6.0
+p_butil_m = 17.0
+p_fartuk_m = 50.0
+p_krepezh_niz_verh = 375.0 + 70.0
+p_krepezh_perekr = 770.0 + 2 * p_bolt
+
+PRICE_FILE = "../прайс_2015_январь.xlsx"
 PRICE_CURRENCY = 'USD'  # RUB or USD
 price = {}
 
@@ -67,6 +75,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.windowpanes = 0  # число стеклопакетов
         self.np = 0  # число стоек
         self.n_rows = 0  # число рядов ригелей
+        self.n_dies = 0  # число сухарей
         self.fl = 0  # число перекрытий
         self.fh = {}  # высоты перекрытий
         self.profiles = {}  # список профилей "артикул: список длин"
@@ -95,26 +104,30 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.actionOpen_pricelist.triggered.connect(self.custom_price_load)
         self.actionExit.triggered.connect(self.close)
         self.pushButton.clicked.connect(self.print_all)
+        self.pushButtonF.clicked.connect(self.calc_fasteners)
 
         # reading config
-        config = configparser.ConfigParser()
-        config.read('main.ini')
-        if 'h' in config['DEFAULT']:
-            self.h = float(config['DEFAULT']['h'])
-            self.edit_height.setText("%.3f" % self.h)
-        if 'w' in config['DEFAULT']:
-            self.w = float(config['DEFAULT']['w'])
-            self.edit_width.setText("%.3f" % self.w)
-        if 'np' in config['DEFAULT']:
-            self.np = int(config['DEFAULT']['np'])
-            self.edit_pillars.setText("%d" % self.np)
-        if 'n_rows' in config['DEFAULT']:
-            self.n_rows = int(config['DEFAULT']['n_rows'])
-            self.edit_headers.setText("%d" % self.n_rows)
-        self.width_changed()
-        self.height_changed()
-        self.pillars_changed()
-        self.headers_changed()
+        try:
+            config = configparser.ConfigParser()
+            config.read('main.ini')
+            if 'h' in config['DEFAULT']:
+                self.h = float(config['DEFAULT']['h'])
+                self.edit_height.setText("%.3f" % self.h)
+            if 'w' in config['DEFAULT']:
+                self.w = float(config['DEFAULT']['w'])
+                self.edit_width.setText("%.3f" % self.w)
+            if 'np' in config['DEFAULT']:
+                self.np = int(config['DEFAULT']['np'])
+                self.edit_pillars.setText("%d" % self.np)
+            if 'n_rows' in config['DEFAULT']:
+                self.n_rows = int(config['DEFAULT']['n_rows'])
+                self.edit_headers.setText("%d" % self.n_rows)
+            self.width_changed()
+            self.height_changed()
+            self.pillars_changed()
+            self.headers_changed()
+        except:
+            pass
         # currency
         # noinspection PyBroadException
         try:
@@ -129,12 +142,16 @@ class FacadeMainClass(QtWidgets.QMainWindow):
             self.edit_rate.setText("???")
         self.price_load(PRICE_FILE)
 
+    def r2e(self, amount_rub):
+        return amount_rub / self.eur_rub
+
     def print_all(self):
         for k, v in self.profiles.items():
             print(k)
             print(v)
             s = self.calc_all()
             self.label_total.setText("%.2f" % s)
+        return 0
 
     def calc_all(self):
         s, st_len, price_m, price_p = 0, 0, 0, 0
@@ -155,6 +172,31 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         s += get_float_field(self.label_sum8_3)
         s += get_float_field(self.label_sum8_4)
         return s
+
+    def calc_fasteners(self):
+        # 4 самореза на сухарь + 2 на ряд ригелей
+        a = (4 * self.n_dies + 2 * self.n_rows) * self.r2e(p_samorez)
+        print(a)
+        # 2 болта на стойку + 2 на перекрытие
+        b = (self.np * 2 + self.fl * 2) * self.r2e(p_bolt)
+        print(b)
+        # по 6 окр.саморезу на планку ??
+        c = 0
+        print(c)
+        # бутиловая лента по длине ТПУ-007ММ, формула из calc_rubber()
+        d = (self.h * self.np * 2 + self.w * self.n_rows * 2) * self.r2e(p_butil_m)
+        print(d)
+        # фартук по всей ширине конструкции
+        e = self.w * self.r2e(p_fartuk_m)
+        print(e)
+        # крепеж низ/верх
+        f = self.np * 2 * self.r2e(p_krepezh_niz_verh)
+        print(f)
+        # крепеж к перекрытиям
+        g = self.np * self.fl * self.r2e(p_krepezh_perekr)
+        print(g)
+        sum_fast = a + b + c + d + e + f + g
+        self.label_total_f.setText("%.2f" % sum_fast)
 
     # noinspection PyMethodMayBeStatic
     def price_load(self, fn):
@@ -417,8 +459,8 @@ class FacadeMainClass(QtWidgets.QMainWindow):
                 if item not in price[3].keys():
                     mb = QtWidgets.QMessageBox()
                     mb.warning(mb, 'Message',
-                                   "В прайсе отсутствует усилитель %s" % item,
-                                   QtWidgets.QMessageBox.Ok)
+                               "В прайсе отсутствует усилитель %s" % item,
+                               QtWidgets.QMessageBox.Ok)
                     self.comboBox_1.setCurrentIndex(0)
                     return -1
                 self.label_29.setText(item)
@@ -440,7 +482,8 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         st_len, price_m, price_p = self.get_data(4, item)
         self.label_49.setText("%.2f" % price_m)
         self.label_50.setText("%.2f" % price_p)
-        die_list = self.nodes * 2 * [length]
+        self.n_dies = self.nodes * 2
+        die_list = self.n_dies * [length]
         bins = bin_packing.pack(die_list, st_len)
         print('Solution using', len(bins), 'bins:')
         sum1 = price_p * len(bins)
@@ -492,8 +535,8 @@ class FacadeMainClass(QtWidgets.QMainWindow):
                 if item not in price[5].keys():
                     mb = QtWidgets.QMessageBox()
                     mb.warning(mb, 'Message',
-                                   "В прайсе отсутствует крышка %s" % item,
-                                   QtWidgets.QMessageBox.Ok)
+                               "В прайсе отсутствует крышка %s" % item,
+                               QtWidgets.QMessageBox.Ok)
                     cb = eval("self.comboBox_%d" % subtype)
                     cb.setCurrentIndex(0)
                     return -1
@@ -524,8 +567,8 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         if item not in price[6].keys():
             mb = QtWidgets.QMessageBox()
             mb.warning(mb, 'Message',
-                           "В прайсе отсутствует прижим %s" % item,
-                           QtWidgets.QMessageBox.Ok)
+                       "В прайсе отсутствует прижим %s" % item,
+                       QtWidgets.QMessageBox.Ok)
             return -1
         self.label_45.setText(item)
         st_len, price_m, price_p = self.get_data(6, item)
