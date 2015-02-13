@@ -76,6 +76,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.np = 0  # число стоек
         self.n_rows = 0  # число рядов ригелей
         self.n_dies = 0  # число сухарей
+        self.len_press = 0  # суммарная длина прижимов
         self.fl = 0  # число перекрытий
         self.fh = {}  # высоты перекрытий
         self.profiles = {}  # список профилей "артикул: список длин"
@@ -180,8 +181,8 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         # 2 болта на стойку + 2 на перекрытие
         b = (self.np * 2 + self.fl * 2) * self.r2e(p_bolt)
         print(b)
-        # по 6 окр.саморезу на планку ??
-        c = 0
+        # по 1 окр.саморезу на 220 мм планки
+        c = self.len_press / 0.22 * self.r2e(p_samorez_okr)
         print(c)
         # бутиловая лента по длине ТПУ-007ММ, формула из calc_rubber()
         d = (self.h * self.np * 2 + self.w * self.n_rows * 2) * self.r2e(p_butil_m)
@@ -564,6 +565,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.profiles[item] = []
         sum1 = 0
         press_list = []
+        self.len_press = 0
         if item not in price[6].keys():
             mb = QtWidgets.QMessageBox()
             mb.warning(mb, 'Message',
@@ -579,6 +581,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         for k, prof_list in self.profiles.items():
             if price_parser.gettype(k) == 5:
                 press_list += prof_list
+        self.len_press = sum(press_list)
         bins = bin_packing.pack(press_list, st_len)
         print('Solution using', len(bins), 'bins:')
         sum1 += price_p * len(bins)
