@@ -83,6 +83,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.eur_rub = 0
         self.eur_usd = 0
         self.usd_rub = 0
+        self.warm = False
 
         # validators:
         re = QRegExp("\d{1,2}\.?\d+")
@@ -100,6 +101,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.edit_pillars.textChanged.connect(self.pillars_changed)
         self.edit_headers.textChanged.connect(self.headers_changed)
         self.edit_fl.textChanged.connect(self.fl_changed)
+        self.checkBox.stateChanged.connect(self.warm_changed)
         # self.edit_rate.textChanged.connect(self.rate_changed)
 
         self.actionOpen_pricelist.triggered.connect(self.custom_price_load)
@@ -131,20 +133,33 @@ class FacadeMainClass(QtWidgets.QMainWindow):
             pass
         # currency
         # noinspection PyBroadException
-        try:
-            self.eur_rub, curr_code = cbr.get_euro_rate()
-            self.usd_rub = cbr.get_usd_rate()
-            self.eur_usd = self.eur_rub / self.usd_rub
-            self.label_rate.setText("1 %s =" % curr_code)
-            self.edit_rate.setText("%7.4f" % self.eur_rub)
-        except:
-            self.eur_rub = 999999
-            self.label_rate.setText("1 EUR =")
-            self.edit_rate.setText("???")
+        while self.eur_rub == 0:
+            try:
+                self.eur_rub, curr_code = cbr.get_euro_rate()
+                self.usd_rub = cbr.get_usd_rate()
+                self.eur_usd = self.eur_rub / self.usd_rub
+                self.label_rate.setText("1 %s =" % curr_code)
+                self.edit_rate.setText("%7.4f" % self.eur_rub)
+                self.eur_rub = 0
+            except:
+                self.eur_rub = 0
+                self.label_rate.setText("1 EUR =")
+                self.edit_rate.setText("???")
+            if self.eur_rub == 0:
+                mb = QtWidgets.QMessageBox()
+                mb.warning(mb, 'Error',
+                           "Не удается загрузить курс евро. Попробуйте снова.",
+                           QtWidgets.QMessageBox.Ok)
         self.price_load(PRICE_FILE)
 
     def r2e(self, amount_rub):
         return amount_rub / self.eur_rub
+
+    def warm_changed(self):
+        self.warm = self.checkBox.isChecked()
+        if self.label_62.text() == '---':
+            self.calc_pvc()
+        return 0
 
     def print_all(self):
         for k, v in self.profiles.items():
@@ -185,10 +200,16 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         c = self.len_press / 0.22 * self.r2e(p_samorez_okr)
         print(c)
         # бутиловая лента по длине ТПУ-007ММ, формула из calc_rubber()
-        d = (self.h * self.np * 2 + self.w * self.n_rows * 2) * self.r2e(p_butil_m)
+        if self.warm:
+            d = (self.h * self.np * 2 + self.w * self.n_rows * 2) * self.r2e(p_butil_m)
+        else:
+            d = 0
         print(d)
         # фартук по всей ширине конструкции
-        e = self.w * self.r2e(p_fartuk_m)
+        if self.warm:
+            e = self.w * self.r2e(p_fartuk_m)
+        else:
+            e = 0
         print(e)
         # крепеж низ/верх
         f = self.np * 2 * self.r2e(p_krepezh_niz_verh)
@@ -316,11 +337,8 @@ class FacadeMainClass(QtWidgets.QMainWindow):
                        QtWidgets.QMessageBox.Ok)
             self.comboBox_1.setCurrentIndex(0)
             return -1
-
         st_len, price_m, price_p = self.get_data(1, item)
         self.label_20.setText("%.2f" % price_m)
-        self.label_21.setText("%.2f" % price_p)
-
         if not self.fl:  # нет перекрытий
             if self.h > st_len:  #
                 num = int(self.h // st_len)  # число целых профилей на 1 стойку
@@ -371,9 +389,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.profiles[item] = []
         st_len, price_m, price_p = self.get_data(2, item)
         self.label_23.setText("%.2f" % price_m)
-        self.label_24.setText("%.2f" % price_p)
         h_list = []
-
         if not self.n_rows:
             mb = QtWidgets.QMessageBox()
             mb.warning(mb, 'Error', "Укажите число рядов ригелей",
@@ -467,7 +483,6 @@ class FacadeMainClass(QtWidgets.QMainWindow):
                 self.label_29.setText(item)
                 st_len, price_m, price_p = self.get_data(3, item)
                 self.label_25.setText("%.2f" % price_m)
-                self.label_26.setText("%.2f" % price_p)
                 bins = bin_packing.pack(e_list, st_len)
                 print('Solution using', len(bins), 'bins')
                 sum1 = price_p * len(bins)
@@ -482,7 +497,6 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.label_30.setText(item)
         st_len, price_m, price_p = self.get_data(4, item)
         self.label_49.setText("%.2f" % price_m)
-        self.label_50.setText("%.2f" % price_p)
         self.n_dies = self.nodes * 2
         die_list = self.n_dies * [length]
         bins = bin_packing.pack(die_list, st_len)
@@ -550,12 +564,10 @@ class FacadeMainClass(QtWidgets.QMainWindow):
                 if subtype == 1:
                     self.label_33.setText(item)
                     self.label_34.setText("%.2f" % price_m)
-                    self.label_32.setText("%.2f" % price_p)
                     self.label_sum5.setText("%.2f" % sum1)
                 else:
                     self.label_36.setText(item)
                     self.label_35.setText("%.2f" % price_m)
-                    self.label_39.setText("%.2f" % price_p)
                     self.label_sum5_2.setText("%.2f" % sum1)
         self.calc_pressings()
         return 0
@@ -575,7 +587,6 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.label_45.setText(item)
         st_len, price_m, price_p = self.get_data(6, item)
         self.label_42.setText("%.2f" % price_m)
-        self.label_43.setText("%.2f" % price_p)
         # из длин стоечных и ригельных крышек составляем
         # список требуемых прижимов
         for k, prof_list in self.profiles.items():
@@ -637,15 +648,19 @@ class FacadeMainClass(QtWidgets.QMainWindow):
     def calc_pvc(self):  # 9
         item = 'ТПУ-010-04'
         self.profiles[item] = []
-        self.label_62.setText(item)
-        st_len, price_m, price_p = self.get_data(9, item)
-        self.label_58.setText("%.2f" % price_m)
-        self.label_59.setText("%.2f" % price_p)
-        sum_length = self.h * self.np + self.w * self.n_rows
-        n = math.ceil(sum_length / st_len)
-        sum1 = price_p * n
-        self.label_sum9.setText("%.2f" % sum1)
-        self.profiles[item] = n * [st_len]
+        if self.warm:
+            self.label_62.setText(item)
+            st_len, price_m, price_p = self.get_data(9, item)
+            self.label_58.setText("%.2f" % price_m)
+            sum_length = self.h * self.np + self.w * self.n_rows
+            n = math.ceil(sum_length / st_len)
+            sum1 = price_p * n
+            self.label_sum9.setText("%.2f" % sum1)
+            self.profiles[item] = n * [st_len]
+        else:
+            self.label_62.setText('---')
+            self.label_58.setText('---')
+            self.label_sum9.setText('---')
         return 0
 
     def calc_pads(self):  # 10
@@ -655,7 +670,6 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.label_63.setText(item)
         st_len, price_m, price_p = self.get_data(10, item)
         self.label_56.setText("%.2f" % price_m)
-        self.label_57.setText("%.2f" % price_p)
         pad_list = self.windowpanes * 2 * [length]
         bins = bin_packing.pack(pad_list, st_len / 2)  # окр. до половины хлыста
         print('Solution using', len(bins), 'bins:')
