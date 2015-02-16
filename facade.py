@@ -133,14 +133,16 @@ class FacadeMainClass(QtWidgets.QMainWindow):
             pass
         # currency
         # noinspection PyBroadException
+        cnt = 0
         while self.eur_rub == 0:
+            if cnt > 5:
+                sys.exit()
             try:
                 self.eur_rub, curr_code = cbr.get_euro_rate()
                 self.usd_rub = cbr.get_usd_rate()
                 self.eur_usd = self.eur_rub / self.usd_rub
                 self.label_rate.setText("1 %s =" % curr_code)
                 self.edit_rate.setText("%7.4f" % self.eur_rub)
-                self.eur_rub = 0
             except:
                 self.eur_rub = 0
                 self.label_rate.setText("1 EUR =")
@@ -150,6 +152,8 @@ class FacadeMainClass(QtWidgets.QMainWindow):
                 mb.warning(mb, 'Error',
                            "Не удается загрузить курс евро. Попробуйте снова.",
                            QtWidgets.QMessageBox.Ok)
+                cnt += 1
+
         self.price_load(PRICE_FILE)
 
     def r2e(self, amount_rub):
