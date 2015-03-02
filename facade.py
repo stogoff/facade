@@ -14,6 +14,7 @@
 
 import sys
 import math
+import time
 import configparser
 
 from PyQt5 import QtWidgets, QtGui, uic
@@ -110,48 +111,47 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.pushButtonF.clicked.connect(self.calc_fasteners)
 
         # reading config
-        try:
-            config = configparser.ConfigParser()
-            config.read('main.ini')
-            if 'h' in config['DEFAULT']:
-                self.h = float(config['DEFAULT']['h'])
-                self.edit_height.setText("%.3f" % self.h)
-            if 'w' in config['DEFAULT']:
-                self.w = float(config['DEFAULT']['w'])
-                self.edit_width.setText("%.3f" % self.w)
-            if 'np' in config['DEFAULT']:
-                self.np = int(config['DEFAULT']['np'])
-                self.edit_pillars.setText("%d" % self.np)
-            if 'n_rows' in config['DEFAULT']:
-                self.n_rows = int(config['DEFAULT']['n_rows'])
-                self.edit_headers.setText("%d" % self.n_rows)
-            self.width_changed()
-            self.height_changed()
-            self.pillars_changed()
-            self.headers_changed()
-        except:
-            pass
+        # try:
+        config = configparser.ConfigParser()
+        config.read('main.ini')
+        if 'h' in config['DEFAULT']:
+            self.h = float(config['DEFAULT']['h'])
+            self.edit_height.setText("%.3f" % self.h)
+        if 'w' in config['DEFAULT']:
+            self.w = float(config['DEFAULT']['w'])
+            self.edit_width.setText("%.3f" % self.w)
+        if 'np' in config['DEFAULT']:
+            self.np = int(config['DEFAULT']['np'])
+            self.edit_pillars.setText("%d" % self.np)
+        if 'n_rows' in config['DEFAULT']:
+            self.n_rows = int(config['DEFAULT']['n_rows'])
+            self.edit_headers.setText("%d" % self.n_rows)
+        self.width_changed()
+        self.height_changed()
+        self.pillars_changed()
+        self.headers_changed()
+        # except:
+        # pass
+
         # currency
         # noinspection PyBroadException
         cnt = 0
         while self.eur_rub == 0:
             if cnt > 5:
                 sys.exit()
-            try:
-                self.eur_rub, curr_code = cbr.get_euro_rate()
-                self.usd_rub = cbr.get_usd_rate()
-                self.eur_usd = self.eur_rub / self.usd_rub
-                self.label_rate.setText("1 %s =" % curr_code)
-                self.edit_rate.setText("%7.4f" % self.eur_rub)
-            except:
-                self.eur_rub = 0
-                self.label_rate.setText("1 EUR =")
-                self.edit_rate.setText("???")
+            self.eur_rub, curr_code = cbr.get_euro_rate()
+            print(self.eur_rub, curr_code)
+            self.usd_rub = cbr.get_usd_rate()
+            self.eur_usd = self.eur_rub / self.usd_rub
+            self.label_rate.setText("1 %s =" % curr_code)
+            self.edit_rate.setText("%7.4f" % self.eur_rub)
+
             if self.eur_rub == 0:
                 mb = QtWidgets.QMessageBox()
                 mb.warning(mb, 'Error',
-                           "Не удается загрузить курс евро. Попробуйте снова.",
+                           "Не удается загрузить курсы валют. Попробуйте снова.",
                            QtWidgets.QMessageBox.Ok)
+                time.sleep(1)
                 cnt += 1
 
         self.price_load(PRICE_FILE)
@@ -161,7 +161,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
 
     def warm_changed(self):
         self.warm = self.checkBox.isChecked()
-        if self.label_62.text() == '---':
+        if self.label_62.text() != 'x':
             self.calc_pvc()
         return 0
 
