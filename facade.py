@@ -25,6 +25,7 @@ import bin_packing
 import cbr
 
 
+# цена крепежа в руб
 p_samorez = 0.84
 p_bolt = 60.0
 p_samorez_okr = 6.0
@@ -32,6 +33,27 @@ p_butil_m = 17.0
 p_fartuk_m = 50.0
 p_krepezh_niz_verh = 375.0 + 70.0
 p_krepezh_perekr = 770.0 + 2 * p_bolt
+
+# узлы примыкания в рублях
+uppt = 800  # узел примыкания по периметру ТЕПЛЫЙ
+upph = 350  # узел примыкания по периметру ХОЛОДНЫЙ
+uppv = 300  # узел примыкания по периметру внутренний
+upme = 400  # узел примыкания к межэтажным перекрытиям
+uppar = 2200  # парапет
+# узлы крепления
+uknv = 500  # крепежные элементы (низ/верх)
+ukpr = 800  # крепежные элементы (перекрытие)
+# работа в рублях
+wtech = 600  # техника и мех-мы
+wloga = 1500  # доставка авто за 20 кв.м
+wlogb = 800  # доставка внутри фирмы за 20 кв.м
+wsal50 = 150  # зп цеха за узел до 50
+wsal200 = 135  # зп цеха за узел 100-200
+wsal300 = 120  # зп цеха за узел 200-300
+wsal1000 = 105  # зп цеха за узел более 300
+wproj = 350  # проектирование
+wgeo = 80  # геозамер
+walu = 900  # монтаж алюм
 
 PRICE_FILE = "../прайс_2015_январь.xlsx"
 PRICE_CURRENCY = 'USD'  # RUB or USD
@@ -85,6 +107,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.eur_usd = 0
         self.usd_rub = 0
         self.warm = False
+        self.parapet = False
 
         # validators:
         re = QRegExp("\d{1,2}\.?\d+")
@@ -103,12 +126,14 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.edit_headers.textChanged.connect(self.headers_changed)
         self.edit_fl.textChanged.connect(self.fl_changed)
         self.checkBox.stateChanged.connect(self.warm_changed)
-        # self.edit_rate.textChanged.connect(self.rate_changed)
-
+        self.checkBox_2.stateChanged.connect(self.parapet_changed)
         self.actionOpen_pricelist.triggered.connect(self.custom_price_load)
         self.actionExit.triggered.connect(self.close)
         self.pushButton.clicked.connect(self.print_all)
         self.pushButtonF.clicked.connect(self.calc_fasteners)
+        self.pushButtonG.clicked.connect(self.calc_contact_nodes)
+        self.pushButtonH.clicked.connect(self.calc_work)
+        # self.edit_rate.textChanged.connect(self.rate_changed)
 
         # reading config
         # try:
@@ -163,6 +188,12 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         self.warm = self.checkBox.isChecked()
         if self.label_62.text() != 'x':
             self.calc_pvc()
+        self.calc_contact_nodes()
+        return 0
+
+    def parapet_changed(self):
+        self.parapet = self.checkBox_2.isChecked()
+        self.calc_contact_nodes()
         return 0
 
     def print_all(self):
@@ -223,6 +254,46 @@ class FacadeMainClass(QtWidgets.QMainWindow):
         print(g)
         sum_fast = a + b + c + d + e + f + g
         self.label_total_f.setText("%.2f" % sum_fast)
+        return 0
+
+    def calc_contact_nodes(self):
+        # узлы примыкания
+        s = 0
+        if self.warm:
+            s += self.perimeter * self.r2e(uppt)
+        else:
+            s += self.perimeter * self.r2e(upph)
+        s += self.perimeter * self.r2e(uppv)
+        s += self.w * self.fl * self.r2e(upme)
+        if self.parapet:
+            s += self.w * self.r2e(uppar)
+        #  узлы крепления
+        s += self.np * 2 * self.r2e(uknv)  # крепеж верх-низ
+        s += self.np * self.fl * self.r2e(ukpr)  # крепеж перекрытия
+        self.label_total_g.setText("%.2f" % s)
+        return 0
+
+    def calc_work(self):
+        # узлы примыкания
+        s = 0
+        s += self.r2e(wtech) * self.area
+        s += self.r2e(wloga) * self.area / 20
+        s += self.r2e(wlogb) * self.area / 20
+        if self.nodes < 50:
+            sal = wsal50
+        elif self.nodes < 200:
+            sal = wsal200
+        elif self.nodes < 300:
+            sal = wsal300
+        else:
+            sal = wsal1000
+        s += self.r2e(sal) * self.nodes
+        s += self.r2e(wproj) * self.area
+        s += self.r2e(wgeo) * self.area
+        s += self.r2e(walu) * self.area
+
+        self.label_total_h.setText("%.2f" % s)
+        return 0
 
     # noinspection PyMethodMayBeStatic
     def price_load(self, fn):
