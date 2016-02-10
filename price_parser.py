@@ -1,8 +1,8 @@
 import xlrd
 
-WS_NUM = 3  # порядковый номер листа в книге xls
-COL_NAME = 'B'  # столбец "наименование"
-COL_PRICE = 'M'  # столбец "цена"
+WS_NUM = 1  # порядковый номер листа в книге xls
+COL_NAME = 'C'  # столбец "наименование"
+COL_PRICE = 'O'  # столбец "цена"
 COL_LEN = 'F'  # столбец "длина"
 COL_DENSITY = 'G'  # столбец "уд.вес"
 
@@ -73,12 +73,13 @@ def parse_f(fn, t=1):  # t - назначение профиля
                 for rx in range(sh.nrows):
                     for cx in range(sh.ncols):
                         if name in str(sh.cell_value(rx, cx)):
-                            if sh.cell_value(rx, 2) in ('п.м.', 'п.м',
+                            # print(name,rx,cx)
+                            if sh.cell_value(rx, 3) in ('п.м.', 'п.м',
                                                         'м.', 'м'):
-                                length = sh.cell_value(rx, 5)
+                                length = sh.cell_value(rx, 6)
                             else:
                                 length = 0
-                            price = sh.cell_value(rx, 7) * K * NDS
+                            price = sh.cell_value(rx, 8) * K * NDS
                             res[name] = [price, length, 0]
                             cnt += 1
     print("import %d goods of type %d" % (len(res), t))
@@ -87,4 +88,4 @@ def parse_f(fn, t=1):  # t - назначение профиля
 
 if __name__ == '__main__':
     for i in (range(1, 11)):
-        print(i, parse_f("../прайс_2015_январь.xlsx", i))
+        print(i, parse_f("../сентябрь_2015.xls", i))

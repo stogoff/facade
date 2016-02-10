@@ -12,50 +12,26 @@
 # http://www.lfd.uci.edu/~gohlke/pythonlibs/girnt9fk/cx_Freeze-4.3.3.win-amd64-py3.4.exe
 
 
-import sys
-import math
-import time
 import configparser
+import math
+import sys
+import time
 
 from PyQt5 import QtWidgets, QtGui, uic
 from PyQt5.QtCore import Qt, QRegExp
 
-import price_parser
 import bin_packing
 import cbr
+import price_parser
 
+config = configparser.ConfigParser()
+config.read('main.ini')
+prices = config['RUB_PRICES']
+for k in prices:
+    print("%s=%f" % (k, float(prices[k])))
+    exec("%s=%f" % (k, float(prices[k])))
 
-# цена крепежа в руб
-p_samorez = 0.84
-p_bolt = 60.0
-p_samorez_okr = 6.0
-p_butil_m = 17.0
-p_fartuk_m = 50.0
-p_krepezh_niz_verh = 375.0 + 70.0
-p_krepezh_perekr = 770.0 + 2 * p_bolt
-
-# узлы примыкания в рублях
-uppt = 800  # узел примыкания по периметру ТЕПЛЫЙ
-upph = 350  # узел примыкания по периметру ХОЛОДНЫЙ
-uppv = 300  # узел примыкания по периметру внутренний
-upme = 400  # узел примыкания к межэтажным перекрытиям
-uppar = 2200  # парапет
-# узлы крепления
-uknv = 500  # крепежные элементы (низ/верх)
-ukpr = 800  # крепежные элементы (перекрытие)
-# работа в рублях
-wtech = 600  # техника и мех-мы
-wloga = 1500  # доставка авто за 20 кв.м
-wlogb = 800  # доставка внутри фирмы за 20 кв.м
-wsal50 = 150  # зп цеха за узел до 50
-wsal200 = 135  # зп цеха за узел 100-200
-wsal300 = 120  # зп цеха за узел 200-300
-wsal1000 = 105  # зп цеха за узел более 300
-wproj = 350  # проектирование
-wgeo = 80  # геозамер
-walu = 900  # монтаж алюм
-
-PRICE_FILE = "../прайс_2015_январь.xlsx"
+PRICE_FILE = "../сентябрь_2015.xls"
 PRICE_CURRENCY = 'USD'  # RUB or USD
 price = {}
 
@@ -484,7 +460,7 @@ class FacadeMainClass(QtWidgets.QMainWindow):
 
                 return -1
 
-            if sw > self.w:
+            if sw - self.w > 0.01:
                 print(sw, self.w)
                 mb = QtWidgets.QMessageBox()
                 mb.warning(mb, 'Error', "Превышена общая ширина",
